@@ -77,7 +77,7 @@ new #[Layout('layouts.guest')] class extends Component
 
     <div class="flex items-center my-4">
         <div class="flex-1 border-t"></div>
-        <span class="px-2 text-gray-400 text-sm">{{ __("sportapp.or") }}</span>
+        <span class="px-2 text-gray-400 text-sm">{{ __('vespaket.or') }}</span>
         <div class="flex-1 border-t"></div>
     </div>
 
@@ -86,7 +86,7 @@ new #[Layout('layouts.guest')] class extends Component
 
         <img src="/images/google-logo.png" class="w-5 h-5">
         <span class="font-medium text-gray-800">
-            {{ __("sportapp.connect_with", ["name" => "Google"]) }}
+            {{ __('vespaket.connect_with', ["name" => "Google"]) }}
         </span>
     </a>
 </div>

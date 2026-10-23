@@ -7,19 +7,19 @@
             @if($editingEvent)
                 <div class="space-y-3 bg-white p-4 rounded-xl shadow mb-4">
                     <div>
-                        <label class="block text-sm font-bold text-gray-700">{{ __('sportapp.title') }}</label>
+                        <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.title') }}</label>
                         <input type="text" wire:model="eventTitle" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-700">{{ __('sportapp.date') }}</label>
+                        <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.date') }}</label>
                         <input type="datetime-local" wire:model="eventDate" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-700">{{ __('sportapp.location') }}</label>
+                        <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.location') }}</label>
                         <input type="text" wire:model="eventLocation" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-700">{{ __('sportapp.description') }}</label>
+                        <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.description') }}</label>
                         <input type="text" wire:model="eventDescription" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
                     </div>
                     <div class="flex gap-2">
@@ -38,7 +38,7 @@
 
                 <p class="text-gray-600"> {{ $event->formatdate() }} </p>
                 <p class="text-gray-900">
-                    {{ __("sportapp.location") }} : {{ $event->location }}
+                    {{ __('vespaket.location') }} : {{ $event->location }}
                 </p>
                 <p>
                 {{ $event->description }}
@@ -48,7 +48,7 @@
                     ✏️ {{ __('actions.edit') }}
                 </button>
                 <button wire:click="deleteEvent()" 
-                    wire:confirm="{{ __('sportapp.confirm_delete') }}"
+                    wire:confirm="{{ __('vespaket.confirm_delete') }}"
                     class="mt-2 text-blue-600 hover:text-blue-800 font-semibold text-sm">
                     🗑️​ {{ __('actions.delete') }}
                 </button>
@@ -60,12 +60,12 @@
     <!-- LISTE -->
     <div class="flex flex-col lg:flex-row gap-4">
         <div>
-            <h2>{{ __("sportapp.list_players") }}</h2>
+            <h2>{{ __('vespaket.list_players') }}</h2>
             <table class="w-full text-sm text-left rtl:text-right text-body text-yellow-400 max-w-lg">
                 <thead class="bg-black border-b border-default">
                     <tr>
-                        <th scope="col" class="px-2 sm:px-6 py-3 font-bold">{{ __('sportapp.first_name') }}</th>
-                        <th scope="col" class="px-2 sm:px-6 py-3 font-bold">{{ __('sportapp.availability') }}</th>
+                        <th scope="col" class="px-2 sm:px-6 py-3 font-bold">{{ __('vespaket.first_name') }}</th>
+                        <th scope="col" class="px-2 sm:px-6 py-3 font-bold">{{ __('vespaket.availability') }}</th>
                     </tr>
                 </thead>
                 <tbody>

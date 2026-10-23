@@ -1,11 +1,11 @@
 <div class="space-y-6 p-0 sm:p-6">
     <div class="flex items-center justify-between gap-4">
         <h1 class="text-2xl font-bold text-gray-900">
-            {{ __('sportapp.manage_members') }} 
+            {{ __('vespaket.manage_members') }} 
         </h1>
         @if(!$creating)
             <button wire:click="startCreate" type="button" class="rounded-lg bg-yellow-400 px-3 py-2 font-semibold text-black hover:bg-yellow-300">
-                {{ __('sportapp.add_member') }}
+                {{ __('vespaket.add_member') }}
             </button>
         @endif
     </div>
@@ -22,10 +22,10 @@
 
     @if($creating)
         <div class="rounded-xl border border-gray-800 bg-yellow-100 p-4 shadow text-black">
-            <h2 class="text-lg font-semibold ">{{ __('sportapp.add_member') }}</h2>
+            <h2 class="text-lg font-semibold ">{{ __('vespaket.add_member') }}</h2>
             <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                    <x-input-label for="new-member-prenom" value="{{ __('sportapp.first_name') }}" />
+                    <x-input-label for="new-member-prenom" value="{{ __('vespaket.first_name') }}" />
                     <x-text-input wire:model="newMember.prenom" id="new-member-prenom" type="text" class="mt-1 w-full border-gray-700 bg-yellow-200" />
                     <x-input-error class="mt-1" :messages="$errors->get('newMember.prenom')" />
                 </div>
@@ -35,21 +35,21 @@
                     <x-input-error class="mt-1" :messages="$errors->get('newMember.name')" />
                 </div>
                 <div>
-                    <x-input-label for="new-member-type" value="{{ __('sportapp.type') }}"  />
+                    <x-input-label for="new-member-type" value="{{ __('vespaket.type') }}"  />
                     <select wire:model="newMember.type" id="new-member-type" class="mt-1 w-full rounded-md border-gray-700  bg-yellow-200 focus:border-yellow-500 focus:ring-yellow-500">
-                        <option value="player">{{ __('sportapp.player') }}</option>
-                        <option value="coach">{{ __('sportapp.coach') }}</option>
-                        <option value="staff">{{ __('sportapp.staff') }}</option>
+                        <option value="player">{{ __('vespaket.player') }}</option>
+                        <option value="coach">{{ __('vespaket.coach') }}</option>
+                        <option value="staff">{{ __('vespaket.staff') }}</option>
                     </select>
                     <x-input-error class="mt-1" :messages="$errors->get('newMember.type')" />
                 </div>
                 <div>
-                    <x-input-label for="new-member-number" value="{{ __('sportapp.number') }}"  />
+                    <x-input-label for="new-member-number" value="{{ __('vespaket.number') }}"  />
                     <x-text-input wire:model="newMember.numero" id="new-member-number" type="number" class="mt-1 w-full border-gray-700 bg-yellow-200" />
                     <x-input-error class="mt-1" :messages="$errors->get('newMember.numero')" />
                 </div>
                 <div>
-                    <x-input-label for="new-member-licence" value="{{ __('sportapp.licence') }}"  />
+                    <x-input-label for="new-member-licence" value="{{ __('vespaket.licence') }}"  />
                     <x-text-input wire:model="newMember.licence" id="new-member-licence" type="text" class="mt-1 w-full border-gray-700 bg-yellow-200" />
                     <x-input-error class="mt-1" :messages="$errors->get('newMember.licence')" />
                 </div>
@@ -82,9 +82,9 @@
         <table class="w-full text-left text-sm text-white">
             <thead class="bg-black text-xs uppercase tracking-wide text-yellow-400">
                 <tr>
-                    <th class="px-4 py-3" >{{ __('sportapp.members') }}</th>
-                    <th class="px-4 py-3" >{{ __('sportapp.number') }}</th>
-                    <th class="px-4 py-3" >{{ __('sportapp.licence') }}</th>
+                    <th class="px-4 py-3" >{{ __('vespaket.members') }}</th>
+                    <th class="px-4 py-3" >{{ __('vespaket.number') }}</th>
+                    <th class="px-4 py-3" >{{ __('vespaket.licence') }}</th>
                     <th class="px-4 py-3 text-right">{{ __('actions.actions') }}</th>
                 </tr>
             </thead>
@@ -104,7 +104,7 @@
                             <button wire:click="editMember({{ $index }})" type="button" class="ml-2 rounded-lg border border-yellow-400 bg-yellow-300 px-3 py-2 font-semibold text-black hover:bg-yellow-300">
                                 <img src="{{ asset('images/parametres.png') }}" class="max-w-4"/>
                             </button>
-                            <button wire:click="delete({{ $member['id'] }})" wire:confirm="{{ __('sportapp.confirm_delete_member') }}" type="button" class="ml-2 rounded-lg border border-red-400 px-3 py-2 font-semibold text-red-400 hover:bg-red-950">
+                            <button wire:click="delete({{ $member['id'] }})" wire:confirm="{{ __('vespaket.confirm_delete_member') }}" type="button" class="ml-2 rounded-lg border border-red-400 px-3 py-2 font-semibold text-red-400 hover:bg-red-950">
                                 <img src="{{ asset('images/supprimer.png') }}" class="max-w-4" />
                             </button>
                         </td>
@@ -115,7 +115,7 @@
                                 <div class="px-4 py-4 m-2 border border-black bg-yellow-100 text-black">
                                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                         <div>
-                                            <x-input-label for="member-prenom-{{ $member['id'] }}" value="{{ __('sportapp.first_name') }}" class="text-gray-200" />
+                                            <x-input-label for="member-prenom-{{ $member['id'] }}" value="{{ __('vespaket.first_name') }}" class="text-gray-200" />
                                             <x-text-input wire:model="members.{{ $index }}.prenom" id="member-prenom-{{ $member['id'] }}" type="text" class="mt-1 w-full border-gray-700 bg-yellow-200" />
                                             <x-input-error class="mt-1" :messages="$errors->get('members.' . $index . '.prenom')" />
                                         </div>
@@ -125,19 +125,19 @@
                                             <x-input-error class="mt-1" :messages="$errors->get('members.' . $index . '.name')" />
                                         </div>
                                         <div>
-                                            <x-input-label for="member-type-{{ $member['id'] }}" value="{{ __('sportapp.type') }}" class="text-gray-200" />
+                                            <x-input-label for="member-type-{{ $member['id'] }}" value="{{ __('vespaket.type') }}" class="text-gray-200" />
                                             <select wire:model="members.{{ $index }}.type" id="member-type-{{ $member['id'] }}" class="mt-1 w-full rounded-md border-gray-700 bg-yellow-200 focus:border-yellow-500 focus:ring-yellow-500">
-                                                <option value="player">{{ __('sportapp.player') }}</option>
-                                                <option value="coach">{{ __('sportapp.coach') }}</option>
-                                                <option value="staff">{{ __('sportapp.staff') }}</option>
+                                                <option value="player">{{ __('vespaket.player') }}</option>
+                                                <option value="coach">{{ __('vespaket.coach') }}</option>
+                                                <option value="staff">{{ __('vespaket.staff') }}</option>
                                             </select>
                                         </div>
                                         <div>
-                                            <x-input-label for="member-number-{{ $member['id'] }}" value="{{ __('sportapp.number') }}" class="text-gray-200" />
+                                            <x-input-label for="member-number-{{ $member['id'] }}" value="{{ __('vespaket.number') }}" class="text-gray-200" />
                                             <x-text-input wire:model="members.{{ $index }}.numero" id="member-number-{{ $member['id'] }}" type="text" class="mt-1 w-full border-gray-700 bg-yellow-200" />
                                         </div>
                                         <div>
-                                            <x-input-label for="member-licence-{{ $member['id'] }}" value="{{ __('sportapp.licence') }}" class="text-gray-200" />
+                                            <x-input-label for="member-licence-{{ $member['id'] }}" value="{{ __('vespaket.licence') }}" class="text-gray-200" />
                                             <x-text-input wire:model="members.{{ $index }}.licence" id="member-licence-{{ $member['id'] }}" type="text" class="mt-1 w-full border-gray-700 bg-yellow-200" />
                                         </div>
                                     </div>
@@ -155,7 +155,7 @@
                     @endif
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-6 text-center text-gray-400">{{ __('sportapp.no_member') }}</td>
+                        <td colspan="7" class="px-4 py-6 text-center text-gray-400">{{ __('vespaket.no_member') }}</td>
                     </tr>
                 @endforelse
             </tbody>

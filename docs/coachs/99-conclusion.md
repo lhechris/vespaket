@@ -2,7 +2,7 @@
 
 ## En résumé
 
-Sport App permet d’organiser plus simplement la vie sportive d’une équipe.
+Vespaket permet d’organiser plus simplement la vie sportive d’une équipe.
 
 ## A venir
 

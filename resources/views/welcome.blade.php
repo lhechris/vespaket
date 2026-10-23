@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>{{ config('app.name', 'sportapp') }}</title>
+    <title>{{ config('app.name', 'Vespaket') }}</title>
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,7 +32,7 @@
         </p>
  
         <h1 class="font-['Barlow_Condensed'] text-[clamp(3rem,10vw,7rem)] font-black uppercase leading-none text-white">
-            {{ __("sportapp.welcome") }}
+            {{ __('vespaket.welcome') }}
         </h1>
  
         <div class="w-12 h-[3px] bg-yellow-400"></div>
@@ -40,7 +40,7 @@
         @auth
             <a href="/dashboard"
                class="font-['Barlow_Condensed'] text-lg font-bold tracking-widest uppercase text-black bg-yellow-400 border-2 border-yellow-400 px-11 py-4 transition-all duration-200 hover:bg-transparent hover:text-yellow-400 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-yellow-400">
-                {{ __('sportapp.my_area') }}
+                {{ __('vespaket.my_area') }}
             </a>
         @else
             <a href="/login"

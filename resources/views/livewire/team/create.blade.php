@@ -1,5 +1,5 @@
 <div class="p-4 rounded shadow">
-    <h2 class="text-lg font-bold mb-4">{{ __('sportapp.add_team') }}</h2>
+    <h2 class="text-lg font-bold mb-4">{{ __('vespaket.add_team') }}</h2>
 
     @if(session()->has('success'))
         <div class="text-green-600">
@@ -10,14 +10,14 @@
     <input 
         type="text" 
         wire:model="name" 
-        placeholder="{{ __('sportapp.team_name') }}"
+        placeholder="{{ __('vespaket.team_name') }}"
         class="border p-2 w-full mb-2"
     >
 
     <input 
         type="text" 
         wire:model="whatsapp" 
-        placeholder="{{ __('sportapp.link_whatsapp') }}"
+        placeholder="{{ __('vespaket.link_whatsapp') }}"
         class="border p-2 w-full mb-2"
     >
 
@@ -35,6 +35,6 @@
         wire:click="create"
         class="bg-blue-500 text-white px-4 py-2 mt-2"
     >
-        {{ __('sportapp.add_team') }}
+        {{ __('vespaket.add_team') }}
     </button>
 </div>

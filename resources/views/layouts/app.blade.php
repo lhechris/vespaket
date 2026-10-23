@@ -11,14 +11,14 @@
         <link rel="manifest" href="{{ asset('manifest.json') }}">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-        <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Sport App') }}">
+        <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Vespaket') }}">
         <link rel="apple-touch-icon" href="{{ asset('images/icon-192.png') }}">
         <meta name="msapplication-TileColor" content="#fbbf24">
         <meta name="msapplication-config" content="{{ asset('browserconfig.xml') }}">
 
         <meta name="vapid-public-key" content="{{ config('webpush.vapid.public_key') }}">
 
-        <title>{{ config('app.name', 'sportapp') }}</title>
+        <title>{{ config('app.name', 'vespaket') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

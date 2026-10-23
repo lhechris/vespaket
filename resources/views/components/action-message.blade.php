@@ -6,5 +6,5 @@
      x-transition:leave.opacity.duration.1500ms
      style="display: none;"
     {{ $attributes->merge(['class' => 'text-sm text-gray-600']) }}>
-    {{ $slot->isEmpty() ? __('sportapp.successfully_saved') : $slot }}
+    {{ $slot->isEmpty() ? __('vespaket.successfully_saved') : $slot }}
 </div>

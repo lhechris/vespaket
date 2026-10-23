@@ -3,16 +3,16 @@ set -euo pipefail
 
 # === PARAMÈTRES ===
 USER_HOME="${HOME}"
-BUILD_DIR="${USER_HOME}/builds/sportapp"
+BUILD_DIR="${USER_HOME}/builds/vespaket"
 RELEASES_BUILD="${BUILD_DIR}/releases"
 
-WEB_ROOT="/var/www/sportapp"
+WEB_ROOT="/var/www/vespaket"
 RELEASES_WEB="${WEB_ROOT}"
 CURRENT_LINK="${WEB_ROOT}/site"
 SHARED="${WEB_ROOT}/data"
 
 
-REPO="git@github.com:lhechris/sportapp.git"
+REPO="git@github.com:lhechris/vespaket.git"
 #BRANCH_OR_TAG="main"
 
 #PHP_VERSION="8.4"

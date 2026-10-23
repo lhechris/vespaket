@@ -2,28 +2,28 @@
 
     <div class="mb-3 flex flex-col gap-3">
         <div>
-            <label class="block text-sm font-bold text-gray-700">{{ __('sportapp.team_name') }}</label>
+            <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.team_name') }}</label>
             <input type="text" wire:model="teamName" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
         </div>
         <div>
-            <label class="block text-sm font-bold text-gray-700">{{ __('sportapp.link_whatsapp') }}</label>
+            <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.link_whatsapp') }}</label>
             <input type="text" wire:model="teamWhatsapp" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
         </div>
         <div>
-            <label class="block text-sm font-bold text-gray-700">{{ __('sportapp.message_convocation') }}</label>
+            <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.message_convocation') }}</label>
             <textarea type="text" rows="8" wire:model="teamMsgConvocation" class="w-full rounded border border-gray-300 px-3 py-2 text-black"> </textarea>
         </div>
     </div>
 
     <div>
-        <label >{{ __('sportapp.list_options_matchs') }} </label>
+        <label >{{ __('vespaket.list_options_matchs') }} </label>
         <table class="w-full text-left border-collapse text-sm">
             <thead>
                 <tr class="bg-black text-yellow-400">
                     <th class="p-2">{{ __('Name') }}</th>
-                    <th class="p-2">{{ __('sportapp.type') }}</th>
-                    <th class="p-2">{{ __('sportapp.order') }}</th>
-                    <th class="p-2">{{ __('sportapp.display') }}</th>
+                    <th class="p-2">{{ __('vespaket.type') }}</th>
+                    <th class="p-2">{{ __('vespaket.order') }}</th>
+                    <th class="p-2">{{ __('vespaket.display') }}</th>
                     <th class="p-2"></th>
                 </tr>
             </thead>
@@ -61,7 +61,7 @@
                         </td>
                         <td class="p-1">
                             <button wire:click="delete('{{ $key }}')" type="button"
-                                wire:confirm="{{ __('sportapp.confirm_delete') }}"
+                                wire:confirm="{{ __('vespaket.confirm_delete') }}"
                                 class="hover:scale-110 transition">
                                 🗑️
                             </button>
@@ -86,7 +86,7 @@
         </button>
 
         <button wire:click="deleteTeam()" 
-            wire:confirm="{{ __('sportapp.confirm_delete_team') }}"
+            wire:confirm="{{ __('vespaket.confirm_delete_team') }}"
             class="bg-red-800 text-yellow-400 font-semibold px-4 py-2 rounded hover:bg-red-900">
             🗑️​ {{ __('actions.delete') }}
         </button>
@@ -98,6 +98,6 @@
         x-on:saved.window="show = true; setTimeout(() => show = false, 2000)"
         x-show="show" x-transition
         class="mt-2 text-sm text-green-600">
-        {{ __('sportapp.successfully_saved') }}
+        {{ __('vespaket.successfully_saved') }}
     </div>
 </div>

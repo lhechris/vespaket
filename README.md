@@ -1,6 +1,6 @@
-# Sport App
+# Vespaket
 
-Sport App est une application web destinée à faciliter l’organisation des équipes sportives : matchs, entraînements, événements et informations des membres sont regroupés au même endroit. L’application peut aussi être installée sur un téléphone ou un ordinateur et envoyer des notifications push.
+Vespaket est une application web destinée à faciliter l’organisation des équipes sportives : matchs, entraînements, événements et informations des membres sont regroupés au même endroit. L’application peut aussi être installée sur un téléphone ou un ordinateur et envoyer des notifications push.
 
 ## Fonctionnalités
 
@@ -78,7 +78,7 @@ Créez une base de données vide et un compte disposant des droits nécessaires,
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=sportapp
+DB_DATABASE=vespaket
 DB_USERNAME=utilisateur
 DB_PASSWORD=mot_de_passe
 ```

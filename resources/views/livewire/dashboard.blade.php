@@ -28,24 +28,24 @@
     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800">
 
         <h2 class="text-white font-bold mb-4">
-            ⚡ {{ __('sportapp.quick_actions') }}
+            ⚡ {{ __('vespaket.quick_actions') }}
         </h2>
 
         <div class="flex flex-wrap gap-3">
 
             <a href="{{ route('teams.create') }}"
                class="bg-yellow-400 text-black px-4 py-2 rounded-lg font-semibold hover:bg-yellow-300">
-                ➕ {{ __('sportapp.create_team') }}
+                ➕ {{ __('vespaket.create_team') }}
             </a>
 
             <a href="{{ route('members') }}"
                class="bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-200">
-                👥 {{ __('sportapp.manage_members') }}
+                👥 {{ __('vespaket.manage_members') }}
             </a>
 
             <a href="{{ route('gymnase.show') }}"
                class="bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-200">
-                ​📍​ {{ __('sportapp.manage_sport_hall') }}
+                ​📍​ {{ __('vespaket.manage_sport_hall') }}
             </a>
         </div>
 
@@ -55,7 +55,7 @@
     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800">
 
         <h2 class="text-white font-bold mb-4">
-            🏀 {{ __('sportapp.my_teams') }}
+            🏀 {{ __('vespaket.my_teams') }}
         </h2>
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -71,7 +71,7 @@
                             </p>
 
                             <p class="text-gray-400 text-sm">
-                                {{ $team->members()->count() }} {{ __('sportapp.members') }}
+                                {{ $team->members()->count() }} {{ __('vespaket.members') }}
                             </p>
                         </div>
 
@@ -83,7 +83,7 @@
                 </a>
 
             @empty
-                <p class="text-gray-500">{{ __('sportapp.no_teams') }}</p>
+                <p class="text-gray-500">{{ __('vespaket.no_teams') }}</p>
             @endforelse
 
         </div>
@@ -109,7 +109,7 @@
 @if($activeTab==$member->prenom)
 
         <h2 class="text-white font-bold mb-4">
-            {{ __('sportapp.presence_of', ["name" => $member->prenom])  }}
+            {{ __('vespaket.presence_of', ["name" => $member->prenom])  }}
         </h2>
 
         <x-cards-scroll nextElementId="game-{{$member->id}}-{{$member->nextGameId}}" >
@@ -128,12 +128,12 @@
                     ></livewire:game.card>                
                 @endif 
             @empty
-                <p class="text-gray-500">{{ __("sportapp.no_match") }}</p>
+                <p class="text-gray-500">{{ __('vespaket.no_match') }}</p>
             @endforelse
         </x-cards-scroll>
 @endif
 @empty
-        <p class="text-gray-500">{{ __("sportapp.no_member") }}</p>
+        <p class="text-gray-500">{{ __('vespaket.no_member') }}</p>
 @endforelse
 
     </div>

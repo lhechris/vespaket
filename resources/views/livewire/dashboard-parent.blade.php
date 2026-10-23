@@ -25,7 +25,7 @@
 @if($activeTab==$member->prenom)
     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800">
         <h2 class="text-white font-bold mb-4">
-            {{ __('sportapp.presence_of' , ["name" => $member->prenom]) }}
+            {{ __('vespaket.presence_of' , ["name" => $member->prenom]) }}
         </h2>
 
         <x-cards-scroll nextElementId="game-{{$member->id}}-{{$member->nextGameId}}" >
@@ -44,12 +44,12 @@
                 ></livewire:game.card>                
                 @endif 
             @empty
-                <p class="text-gray-500">{{ __('sportapp.no_match') }}</p>
+                <p class="text-gray-500">{{ __('vespaket.no_match') }}</p>
             @endforelse
         </x-cards-scroll>
     </div>
 @endif
 @empty
-        <p class="text-gray-500">{{ __('sportapp.no_member') }}</p>
+        <p class="text-gray-500">{{ __('vespaket.no_member') }}</p>
 @endforelse
 </div>

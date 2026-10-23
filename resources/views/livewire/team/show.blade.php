@@ -15,11 +15,11 @@
                 </button>
             </div>
             <div class="text-gray-600 flex gap-2" >
-                <p>{{ $team->players()->count() }} {{ __('sportapp.players') }}</p>
-                <p>{{ $team->staffs()->count() }} {{ __('sportapp.staffs') }}</p>
-                <p>{{ $team->coaches()->count() }} {{ __('sportapp.coaches') }}</p>
-                <p>{{ $team->games()->count() }} {{ __('sportapp.matchs') }}</p>
-                <p>{{ $team->trainings()->count() }} {{ __('sportapp.trainings') }}</p>
+                <p>{{ $team->players()->count() }} {{ __('vespaket.players') }}</p>
+                <p>{{ $team->staffs()->count() }} {{ __('vespaket.staffs') }}</p>
+                <p>{{ $team->coaches()->count() }} {{ __('vespaket.coaches') }}</p>
+                <p>{{ $team->games()->count() }} {{ __('vespaket.matchs') }}</p>
+                <p>{{ $team->trainings()->count() }} {{ __('vespaket.trainings') }}</p>
             </div>
         </div>
 
@@ -29,28 +29,28 @@
         <nav class="flex flex-wrap gap-2 bg-white rounded-full border border-gray-200 p-2 shadow-sm">
             <button wire:click="setTab('games')"
                     class="px-2 sm:px-4 py-2 rounded-full text-sm font-semibold {{ $activeTab === 'games' ? 'bg-gray-500 text-white' : 'bg-transparent text-gray-700 hover:bg-gray-100' }}">
-                <img src="{{ asset('images/basketball.png') }}" alt="{{ __('sportapp.matchs') }}"/>
-                <p class="text-xs">{{ __('sportapp.matchs') }}</p>
+                <img src="{{ asset('images/basketball.png') }}" alt="{{ __('vespaket.matchs') }}"/>
+                <p class="text-xs">{{ __('vespaket.matchs') }}</p>
             </button>
             <button wire:click="setTab('members')"
                     class="px-2 sm:px-4 py-2 rounded-full text-sm font-semibold {{ $activeTab === 'members' ? 'bg-gray-500 text-white' : 'bg-transparent text-gray-700 hover:bg-gray-100' }}">
-                <img src="{{ asset('images/utilisateurs.png') }}" alt="{{ __('sportapp.headcount') }}"/>
-                <p class="text-xs">{{ __('sportapp.headcount') }}</p>
+                <img src="{{ asset('images/utilisateurs.png') }}" alt="{{ __('vespaket.headcount') }}"/>
+                <p class="text-xs">{{ __('vespaket.headcount') }}</p>
             </button>
             <button wire:click="setTab('trainings')"
                     class="px-2 sm:px-4 py-2 rounded-full text-sm font-semibold {{ $activeTab === 'trainings' ? 'bg-gray-500 text-white' : 'bg-transparent text-gray-700 hover:bg-gray-100' }}">
-                <img src="{{ asset('images/exercice.png') }}" alt="{{ __('sportapp.trainings') }}"/>
-                <p class="text-xs hidden sm:block">{{ __('sportapp.trainings') }}</p><p class="text-xs sm:hidden">{{ __('sportapp.training_cut') }}</p>
+                <img src="{{ asset('images/exercice.png') }}" alt="{{ __('vespaket.trainings') }}"/>
+                <p class="text-xs hidden sm:block">{{ __('vespaket.trainings') }}</p><p class="text-xs sm:hidden">{{ __('vespaket.training_cut') }}</p>
             </button>
             <button wire:click="setTab('selections')"
                     class="px-2 sm:px-4 py-2 rounded-full text-sm font-semibold {{ $activeTab === 'selections' ? 'bg-gray-500 text-white' : 'bg-transparent text-gray-700 hover:bg-gray-100' }}">
-                <img src="{{ asset('images/selection.png') }}" alt="{{ __('sportapp.selections') }}"/>
-                <p class="text-xs">{{ __('sportapp.selections') }}</p>
+                <img src="{{ asset('images/selection.png') }}" alt="{{ __('vespaket.selections') }}"/>
+                <p class="text-xs">{{ __('vespaket.selections') }}</p>
             </button>
             <button wire:click="setTab('events')"
                     class="px-2 sm:px-4 py-2 rounded-full text-sm font-semibold {{ $activeTab === 'events' ? 'bg-gray-500 text-white' : 'bg-transparent text-gray-700 hover:bg-gray-100' }}">
-                <img src="{{ asset('images/fete.png') }}" alt="{{ __('sportapp.events') }}"/>
-                <p class="text-xs">{{ __('sportapp.events') }}</p>
+                <img src="{{ asset('images/fete.png') }}" alt="{{ __('vespaket.events') }}"/>
+                <p class="text-xs">{{ __('vespaket.events') }}</p>
             </button>
         </nav>
     </div>

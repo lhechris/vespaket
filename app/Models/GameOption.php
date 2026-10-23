@@ -46,20 +46,20 @@ class GameOption extends Model
     public static function types(): array
     {
         return [
-            self::TYPE_TEXT     => __('sportapp.text'),
-            self::TYPE_CHECKBOX => __('sportapp.checkbox'),
-            self::TYPE_OPPOSITION => __('sportapp.opposition'),
-            self::TYPE_NUM      => __('sportapp.number'),
+            self::TYPE_TEXT     => __('vespaket.text'),
+            self::TYPE_CHECKBOX => __('vespaket.checkbox'),
+            self::TYPE_OPPOSITION => __('vespaket.opposition'),
+            self::TYPE_NUM      => __('vespaket.number'),
         ];
     }
 
     public static function displays(): array
     {
         return [
-            self::DISP_ALL   => __('sportapp.all'),
-            self::DISP_ALL_EDITABLE   => __('sportapp.all_updatable'),
-            self::DISP_COACH => __('sportapp.coach'),
-            self::DISP_STAT      => __('sportapp.statistics'),
+            self::DISP_ALL   => __('vespaket.all'),
+            self::DISP_ALL_EDITABLE   => __('vespaket.all_updatable'),
+            self::DISP_COACH => __('vespaket.coach'),
+            self::DISP_STAT      => __('vespaket.statistics'),
         ];
     }
 

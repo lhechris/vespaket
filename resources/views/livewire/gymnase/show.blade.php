@@ -9,9 +9,9 @@
 
     <table class="w-full text-left rtl:text-right text-body text-yellow-400 ">
         <thead  class="bg-black border-b border-default">
-            <th>{{ __("Name") }}</th>
-            <th>{{ __("sportapp.address") }}</th>
-            <th>{{ __("sportapp.latlong") }}</th>
+            <th>{{ __('Name') }}</th>
+            <th>{{ __('vespaket.address') }}</th>
+            <th>{{ __('vespaket.latlong') }}</th>
             <th></th>
             
         </thead>

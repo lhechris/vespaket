@@ -13,12 +13,12 @@
 >
     {{-- Android : lien direct geo:, l'OS gère le choix de l'app --}}
     <a x-show="isAndroid" x-cloak href="{{ $this->geoUrl }}" class="inline-flex items-center gap-2 bg-yellow-400 text-black font-semibold px-4 py-2 rounded-lg hover:bg-yellow-300 transition">
-        📍 {{ __('sportapp.route') }}
+        📍 {{ __('vespaket.route') }}
     </a>
 
     {{-- iOS ou desktop : bouton qui ouvre un petit menu de choix --}}
     <button x-show="!isAndroid" x-cloak @click="showMenu = !showMenu" class="inline-flex items-center gap-2 bg-yellow-400 text-black font-semibold px-4 py-2 rounded-lg hover:bg-yellow-300 transition">
-        📍 {{ __('sportapp.route') }}
+        📍 {{ __('vespaket.route') }}
     </button>
 
     <div x-show="showMenu && !isAndroid" x-cloak @click.outside="showMenu = false" x-transition class="absolute z-50 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">

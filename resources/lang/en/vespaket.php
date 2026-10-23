@@ -121,5 +121,5 @@ return [
     "update_admin"          => "Edit administrators of team :team",
     "update_team_member"    => "Edit members of team :team",
     "users"                 => "Users",
-    "welcome"               => "Welcome",
+    "welcome"               => "Welcome to ASLB",
 ];

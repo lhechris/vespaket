@@ -13,7 +13,7 @@ document.addEventListener('livewire:init', () => {
 
         registration.showNotification(payload.title, {
             body: payload.body,
-            icon: '/images/logo.jpg'
+            icon: '/images/logo.png'
         });
 
     });

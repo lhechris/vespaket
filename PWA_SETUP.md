@@ -1,4 +1,4 @@
-# Configuration PWA - Sport App
+# Configuration PWA - Vespaket
 
 ## 📱 Installation complète
 
@@ -118,7 +118,7 @@ public/images/
 ```html
 <!-- Dans app.blade.php -->
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Sport App">
+<meta name="apple-mobile-web-app-title" content="Vespaket">
 ```
 
 **2. Activer le mode sombre**

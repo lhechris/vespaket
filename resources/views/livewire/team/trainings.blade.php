@@ -1,6 +1,6 @@
 <div>
     <div class="flex gap-4 mb-2">
-        <h2 class="text-lg font-semibold mb-4">{{ __('sportapp.trainings') }}</h2>
+        <h2 class="text-lg font-semibold mb-4">{{ __('vespaket.trainings') }}</h2>
         <a href="{{ route('team.trainings.create', ['team' => $team->id ]) }}" >
             <x-button>➕️{{ __('actions.add') }}</x-button>
         </a>
@@ -12,10 +12,10 @@
                     id="training-{{ $training->id }}" 
                     href="{{ route('training.show', [ 'training' => $training->id]) }}"
                     description="{{ $training->formatdate() }}" >
-                    <p>{{ $training->members_count }} {{ __('sportapp.players')}}</p>
+                    <p>{{ $training->members_count }} {{ __('vespaket.players')}}</p>
             </x-card>
         @empty
-            <p class="text-gray-500">{{ __('sportapp.no_training') }}</p>
+            <p class="text-gray-500">{{ __('vespaket.no_training') }}</p>
         @endforelse
     </x-cards-scroll>
 </div>

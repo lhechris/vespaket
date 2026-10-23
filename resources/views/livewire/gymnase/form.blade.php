@@ -1,6 +1,6 @@
 <div class="max-w-lg mx-auto bg-white rounded-lg shadow p-6">
     <h2 class="text-lg font-bold text-black mb-4">
-        {{ $place ? __("sportapp.edit_sport_hall") : __("sportapp.new_sport_hall") }}
+        {{ $place ? __('vespaket.edit_sport_hall') : __('vespaket.new_sport_hall') }}
     </h2>
 
     @if (session('success'))
@@ -12,7 +12,7 @@
     <form wire:submit="save" class="space-y-4">
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{__("sportapp.name_of_sport_hall")}}</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{__('vespaket.name_of_sport_hall')}}</label>
             <input
                 type="text"
                 wire:model="name"
@@ -23,7 +23,7 @@
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{__("sportapp.sport_hall_address")}}</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{__('vespaket.sport_hall_address')}}</label>
             <div class="flex gap-2">
                 <input
                     type="text"
@@ -38,8 +38,8 @@
                     wire:target="geocode"
                     class="bg-black text-yellow-400 font-semibold px-4 py-2 rounded-lg hover:bg-gray-800 transition disabled:opacity-50 whitespace-nowrap"
                 >
-                    <span wire:loading.remove wire:target="geocode"> {{__("sportapp.locate")}}</span>
-                    <span wire:loading wire:target="geocode"> {{__("sportapp.search_in_progress")}}...</span>
+                    <span wire:loading.remove wire:target="geocode"> {{__('vespaket.locate')}}</span>
+                    <span wire:loading wire:target="geocode"> {{__('vespaket.search_in_progress')}}...</span>
                 </button>
             </div>
             @error('address') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
@@ -49,13 +49,13 @@
             @endif
 
             @if ($geocodeSuccess)
-                <p class="text-green-600 text-xs mt-1">✓ {{__("sportapp.coord_found")}}</p>
+                <p class="text-green-600 text-xs mt-1">✓ {{__('vespaket.coord_found')}}</p>
             @endif
         </div>
 
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('sportapp.latitude')}}</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('vespaket.latitude')}}</label>
                 <input
                     type="number"
                     step="any"
@@ -66,7 +66,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('sportapp.longitude')}} </label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('vespaket.longitude')}} </label>
                 <input
                     type="number"
                     step="any"
@@ -134,7 +134,7 @@
             wire:ignore
         >
             <label class="block text-sm font-medium text-gray-700 mb-1">
-                {{ __('actions.preview') }} ( {{ __('sportapp.clic_or_drag_marker') }} )
+                {{ __('actions.preview') }} ( {{ __('vespaket.clic_or_drag_marker') }} )
             </label>
             <div x-ref="mapContainer" class="w-full h-64 rounded-lg border border-gray-300"></div>
         </div>

@@ -2,7 +2,7 @@
     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800">
 
         <h2 class="text-white font-bold mb-4">
-            📰​ {{ __('sportapp.news') }}
+            📰​ {{ __('vespaket.news') }}
         </h2>
 
         <div class="grid grids-row gap-3">
@@ -26,7 +26,7 @@
                 </article>
             @empty
                 <p class="rounded-xl border border-gray-300 bg-white p-4 text-sm text-gray-600">
-                    {{ __('sportapp.no_news') }}
+                    {{ __('vespaket.no_news') }}
                 </p>
             @endforelse
 

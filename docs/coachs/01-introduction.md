@@ -2,7 +2,7 @@
 
 ## Objectif de l’application
 
-Sport App aide les équipes sportives à organiser leurs activités au quotidien.
+Vespaket aide les équipes sportives à organiser leurs activités au quotidien.
 
 ## Ce que l’on peut faire
 
