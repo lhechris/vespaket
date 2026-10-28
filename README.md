@@ -95,6 +95,22 @@ npm run build
 
 Les migrations créent les tables nécessaires ; il n’est normalement pas nécessaire d’importer un fichier SQL de sauvegarde pour initialiser une base locale.
 
+### Création d'un utilisateur en mode console
+
+```bash
+php artisan user:create
+```
+
+### Remplir la bdd avec des données csv
+
+Placer les données dans storage/app/csv (members.csv, places.csv, users.csv) et lancer les commandes seed
+
+```bash
+php artisan db:seed --class=Database\Seeders\MemberSeeder
+php artisan db:seed --class=Database\Seeders\PlaceSeeder
+php artisan db:seed --class=Database\Seeders\UserSeeder
+```
+
 ## Développement
 
 Lancez les services de développement avec :

@@ -26,7 +26,6 @@ class MemberAndUserManagementTest extends TestCase
                 'name' => 'Dupont',
                 'prenom' => 'Alice',
                 'type' => Member::TYPE_PLAYER,
-                'birthdate' => '2010-05-12',
                 'licence' => 'LIC-123',
                 'numero' => 7,
             ])

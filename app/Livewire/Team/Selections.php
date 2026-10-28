@@ -13,6 +13,8 @@ class Selections extends Component
 
     public function mount()
     {
+        $this->authorize('TeamAccess', $this->team);
+
         $this->loadData();
     }
 
@@ -40,6 +42,8 @@ class Selections extends Component
 
     public function render()
     {
+        $this->authorize('TeamAccess', $this->team);
+
         return view('livewire.team.selections');
     }
 

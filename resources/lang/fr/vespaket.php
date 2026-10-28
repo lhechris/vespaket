@@ -14,6 +14,7 @@ return [
     "associate_members"     => "Membres associés",
     "availability"          => "Disponibilité",
     "back_to_team"          => "Retour à l'équipe",
+    "cant_modify_admin"     => "Vous ne pouvez pas modifier un compte administrateur.",
     "checkbox"              => "Case à cocher",
     "clic_or_drag_marker"   => "cliquer ou glisser le marqueur pour ajuster",
     "coach"                 => "Entraineur",

@@ -2,43 +2,56 @@
 
 namespace App\Livewire\Team;
 
-use Livewire\Component;
 use App\Models\Team;
 use App\Models\User;
+use Livewire\Component;
 
 class Owners extends Component
 {
     public Team $team;
-    public $members;
+
+    public $owners;
+
     public $search = '';
+
     public $results = [];
+
+    public function mount(): void
+    {
+        $this->authorize('TeamAccess', $this->team);
+    }
 
     public function updatedSearch()
     {
+        $this->authorize('TeamAccess', $this->team);
+
         $this->results = User::where('firstname', 'like', "%{$this->search}%")
             ->limit(10)
             ->get();
     }
 
-    public function addMember($memberId)
+    public function addOwner($userId)
     {
-        if (!$this->team->owners()->whereKey(auth()->id())->exists()) {
-            abort(403);
-        }
+        $this->authorize('TeamAccess', $this->team);
 
         $this->team->owners()->syncWithoutDetaching([
-            $memberId
+            $userId,
         ]);
     }
 
-    public function removeMember($memberId)
+    public function removeOwner($userId)
     {
-        $this->team->owners()->detach($memberId);
+        $this->authorize('TeamAccess', $this->team);
+
+        $this->team->owners()->detach($userId);
     }
 
     public function render()
     {
-        $this->members = $this->team->owners;
-        return view('livewire.team.owners')->layout('layouts.app');;
+        $this->authorize('TeamAccess', $this->team);
+
+        $this->owners = $this->team->owners;
+
+        return view('livewire.team.owners')->layout('layouts.app');
     }
 }

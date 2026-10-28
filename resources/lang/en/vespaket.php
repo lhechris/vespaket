@@ -14,6 +14,7 @@ return [
     "associate_members"     => "Associated members",
     "availability"          => "Availability",
     "back_to_team"          => "Back to team",
+    "cant_modify_admin"     => "You cannot modify an administrator account.",
     "checkbox"              => "Checkbox",
     "clic_or_drag_marker"   => "Click or drag the marker to adjust",
     "coach"                 => "Coach",

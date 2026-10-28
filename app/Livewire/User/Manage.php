@@ -145,7 +145,7 @@ class Manage extends Component
         $user = User::create([
             'name' => $this->newUser['name'],
             'firstname' => $this->newUser['firstname'],
-            'email' => $this->newUser['email'],
+            'email' => strtolower($this->newUser['email']),
             'password' => Hash::make($this->newUser['password']),
             'role' => $this->newUser['role'],
         ]);
@@ -157,11 +157,29 @@ class Manage extends Component
 
     public function saveUser(int $index): void
     {
+
+        $user = User::findOrFail($this->users[$index]['id']);
+        if (!auth()->user()->isAdmin() && ($user->isAdmin() || $this->users[$index]['role'] === User::ROLE_ADMIN)) {
+            $this->addError(
+                "users.$index.role",
+                __("vespaket.cant_modify_admin")
+            );
+            return;
+        }
+
+        $authorizedroles = User::ROLE_PLAYER.",".
+                           User::ROLE_PARENT.",".
+                           User::ROLE_COACH;
+
+        if (auth()->user()->isAdmin()) {
+            $authorizedroles .= ','.User::ROLE_ADMIN;
+        }
+
         $this->validate([
             "users.$index.firstname" => ['required', 'string', 'min:2'],
             "users.$index.name" => ['required', 'string', 'min:2'],
             "users.$index.email" => ['required', 'email'],
-            "users.$index.role" => ['required', 'in:player,parent,coach'],
+            "users.$index.role" => ['required', 'in:'.$authorizedroles],
             "users.$index.password" => ['nullable', 'string', 'min:6'],
         ]);
 
@@ -184,7 +202,7 @@ class Manage extends Component
             $data['password'] = Hash::make($this->users[$index]['password']);
         }
 
-        $user = User::findOrFail($this->users[$index]['id']);
+        
         $user->update($data);
         $this->sync_members($user, $this->users[$index]['selectedMembers']);
         $this->editingIndex = null;
@@ -226,7 +244,7 @@ class Manage extends Component
         $user = User::create([
             'name' => $this->newUser['name'],
             'firstname' => $this->newUser['firstname'],
-            'email' => $email,
+            'email' => strtolower($email),
             'password' => Hash::make(Str::random(40)),
             'role' => $this->newUser['role'],
         ]);

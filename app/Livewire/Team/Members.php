@@ -20,6 +20,8 @@ class Members extends Component
 
     public function mount()
     {
+        $this->authorize('TeamAccess', $this->team);
+
         $this->loadMembers();
 
         $this->coaches = $this->team->coaches()->get();
@@ -54,6 +56,8 @@ class Members extends Component
 
     public function saveMember(): void
     {
+        $this->authorize('TeamAccess', $this->team);
+
         $this->validate([
             'editingMember.prenom' => ['nullable', 'string'],
             'editingMember.licence' => ['nullable', 'string'],
@@ -68,7 +72,7 @@ class Members extends Component
     }
 
     public function cancelEdit(): void
-    {
+    {        
         $this->editingMemberId = null;
         $this->resetValidation();
 
@@ -76,6 +80,8 @@ class Members extends Component
 
     public function render()
     {
+        $this->authorize('TeamAccess', $this->team);
+        
         $this->loadMembers();
 
         return view('livewire.team.members');

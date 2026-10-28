@@ -13,6 +13,11 @@ class ManageMembers extends Component
     public $search = '';
     public $results = [];
 
+    public function mount()
+    {
+        $this->authorize('TeamAccess', $this->team);
+    }
+
     public function updatedSearch()
     {
         $this->results = Member::where('prenom', 'like', "%{$this->search}%")
@@ -22,9 +27,7 @@ class ManageMembers extends Component
 
     public function addMember($memberId)
     {
-        if (!$this->team->owners()->whereKey(auth()->id())->exists()) {
-            abort(403);
-        }
+        $this->authorize('TeamAccess', $this->team);
 
         $this->team->members()->syncWithoutDetaching([
             $memberId
@@ -57,6 +60,8 @@ class ManageMembers extends Component
 
     public function removeMember($memberId)
     {
+        $this->authorize('TeamAccess', $this->team);
+
         $this->team->members()->detach($memberId);
         
         $now = \Carbon\Carbon::now();
@@ -81,6 +86,8 @@ class ManageMembers extends Component
 
     public function render()
     {
+        $this->authorize('TeamAccess', $this->team);
+        
         return view('livewire.team.manage-members', [
             'members' => $this->team->members
         ])->layout('layouts.app');

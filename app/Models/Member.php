@@ -18,7 +18,6 @@ class Member extends Model
         'prenom',
         'type',
         'user_id',
-        'birthdate',
         'licence',
         'numero'
     ];

@@ -24,15 +24,15 @@
     >
 
     <!-- RESULTATS -->
-    @foreach($results as $member)
+    @foreach($results as $owner)
         <div class="flex justify-between border p-2 mb-2">
 
             <span>
-                {{ $member->firstname }} ({{ $member->name }})
+                {{ $owner->firstname }} ({{ $owner->name }})
             </span>
 
             <div class="space-x-2">
-                <button wire:click="addMember({{ $member->id }})"
+                <button wire:click="addOwner({{ $owner->id }})"
                     class="bg-green-500 text-white px-2 py-1">
                     {{ __('actions.add') }}
                 </button>
@@ -54,12 +54,12 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($members as $member)
+            @foreach($owners as $owner)
             <tr class="odd:bg-gray-700 even:bg-gray-800 border-b border-default">
-                <td class="px-6 py-4">{{ $member->firstname }}</td>
-                <td class="px-6 py-4">{{ $member->name }}</td>
+                <td class="px-6 py-4">{{ $owner->firstname }}</td>
+                <td class="px-6 py-4">{{ $owner->name }}</td>
                 <td class="px-6 py-4">
-                    <button wire:click="removeMember({{ $member->id }})" class="text-red-600">
+                    <button wire:click="removeOwner({{ $owner->id }})" class="text-red-600">
                     {{ __('vespaket.remove') }}
                     </button>
                 </td>

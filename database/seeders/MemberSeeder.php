@@ -27,7 +27,6 @@ class MemberSeeder extends Seeder
                 ['name' => $data['name'],'prenom' => $data['prenom']],
                 [
                     'type' => $data['type'],
-                    'birthdate' => $data['birthdate'],
                     'licence' => $data['licence'],
                 ]
             );
@@ -43,7 +42,6 @@ class MemberSeeder extends Seeder
                 'name' => $data['name'],
                 'prenom' => $data['prenom'],
                 'type' => $data['type'],
-                'birthdate' => $data['birthdate'],
                 'licence' => $data['licence'],
             ];
         }

@@ -13,6 +13,8 @@ class Games extends Component
 
     public function mount()
     {
+        $this->authorize('TeamAccess', $this->team);
+
         $now = \Carbon\Carbon::now();
         $this->nextGameId = null;
         foreach ($this->team->games as $game) {
@@ -32,6 +34,8 @@ class Games extends Component
 
     public function render()
     {
+        $this->authorize('TeamAccess', $this->team);
+        
         return view('livewire.team.games');
     }
 }

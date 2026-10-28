@@ -64,7 +64,7 @@ class Accept extends Component
         $user->update([
             'name' => $this->name,
             'firstname' => $this->firstname,
-            'email' => $this->email,
+            'email' => strtolower($this->email),
             'password' => Hash::make($this->password)
         ]);
 

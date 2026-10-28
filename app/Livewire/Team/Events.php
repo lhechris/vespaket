@@ -13,6 +13,8 @@ class Events extends Component
 
     public function mount()
     {
+        $this->authorize('TeamAccess', $this->team);
+
         $now = \Carbon\Carbon::now();
         $this->nextEventId = null;
         foreach ($this->team->events as $event) {
@@ -31,6 +33,8 @@ class Events extends Component
 
     public function render()
     {
+        $this->authorize('TeamAccess', $this->team);
+        
         return view('livewire.team.events');
     }
 }

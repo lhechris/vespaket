@@ -17,9 +17,7 @@ class Create extends Component
             'name' => 'required|min:3'
         ]);
 
-        if (!auth()->user()->isCoach()) {
-            abort(403);
-        }
+        $this->authorize('TeamCreate');
 
         $team = Team::create([
             'name' => $this->name,

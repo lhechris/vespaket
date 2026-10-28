@@ -62,9 +62,12 @@
                 <div>
                     <x-input-label for="new-user-role" value="{{ __('vespaket.role') }}" />
                     <select wire:model="newUser.role" id="new-user-role" class="mt-1 w-full rounded-md border-gray-700 bg-yellow-200 focus:border-yellow-500 focus:ring-yellow-500">
-                        <option value="player">{{ __('vespaket.player') }}</option>
-                        <option value="parent">{{ __('vespaket.parent') }}</option>
-                        <option value="coach">{{ __('vespaket.coach') }}</option>
+                        <option value="{{ \App\Models\User::ROLE_PLAYER }}">{{ __('vespaket.player') }}</option>
+                        <option value="{{ \App\Models\User::ROLE_PARENT }}">{{ __('vespaket.parent') }}</option>
+                        <option value="{{ \App\Models\User::ROLE_COACH }}">{{ __('vespaket.coach') }}</option>
+                        @if(auth()->user()->isAdmin())
+                        <option value="{{ \App\Models\User::ROLE_ADMIN }}"> {{ __('actions.admin')   }}</option>
+                        @endif
                     </select>
                     <x-input-error class="mt-1" :messages="$errors->get('newUser.role')" />
                 </div>
@@ -177,9 +180,10 @@
                                         <div>
                                             <x-input-label for="user-role-{{ $user['id'] }}" value="{{ __('vespaket.role') }}" class="text-gray-900" />
                                             <select wire:model="users.{{ $index }}.role" id="user-role-{{ $user['id'] }}" class="mt-1 w-full rounded-md border-gray-700 bg-yellow-200 focus:border-yellow-500 focus:ring-yellow-500">
-                                                <option value="player">{{ __('vespaket.player') }}</option>
-                                                <option value="parent">{{ __('vespaket.parent') }}</option>
-                                                <option value="coach">{{ __('vespaket.coach') }}</option>
+                                                <option value="{{ \App\Models\User::ROLE_PLAYER }}">{{ __('vespaket.player') }}</option>
+                                                <option value="{{ \App\Models\User::ROLE_PARENT }}">{{ __('vespaket.parent') }}</option>
+                                                <option value="{{ \App\Models\User::ROLE_COACH }}">{{ __('vespaket.coach') }}</option>
+                                                <option value="{{ \App\Models\User::ROLE_ADMIN }}"> {{ __('actions.admin')   }}</option>
                                             </select>
                                             <x-input-error class="mt-1" :messages="$errors->get('users.' . $index . '.role')" />
                                         </div>

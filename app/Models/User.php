@@ -19,6 +19,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
     use HasPushSubscriptions;
 
+    const ROLE_ADMIN = 'admin';
     const ROLE_COACH = 'coach';
     const ROLE_PLAYER = 'player';
     const ROLE_PARENT = 'parent';
@@ -65,10 +66,14 @@ class User extends Authenticatable
     }
 
 
+    public function isAdmin(): bool
+    {
+        return ($this->role === self::ROLE_ADMIN); 
+    }
 
     public function isCoach(): bool
     {
-        return $this->role === self::ROLE_COACH;
+        return (($this->role === self::ROLE_COACH) || ($this->isAdmin())); 
     }
 
     public function isPlayer(): bool

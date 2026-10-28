@@ -25,7 +25,10 @@ class Dashboard extends Component
     private function loaddata()
     {
         if (auth()->user()) {
-            if (auth()->user()->isCoach()) {
+            if (auth()->user()->isAdmin()) {
+                $this->teams = Team::all();
+
+            } else if (auth()->user()->isCoach()) {
                 $this->teams = auth()->user()->ownedTeams()->get();
             }
             

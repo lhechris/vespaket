@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Actions\Logout;
+use App\Models\Team;
 use Livewire\Volt\Component;
 
 
@@ -10,7 +11,12 @@ new class extends Component
 
     public function mount() {
         if (auth()->user()) {
-            $this->teams = auth()->user()->ownedTeams()->get();
+            if (auth()->user()->isAdmin()) {
+                $this->teams = Team::all();
+
+            } else if (auth()->user()->isCoach()) {
+                $this->teams = auth()->user()->ownedTeams()->get();
+            }
         }
     }
     /**
@@ -29,11 +35,10 @@ new class extends Component
     <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 hidden md:flex md:items-center">
+                <div class="hidden shrink-0 md:flex md:items-left">
                     <a href="{{ route('dashboard') }}" wire:navigate>
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
-                    </a>                    
+                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />                        
+                    </a>
                 </div>
                 @auth
                 <!-- Navigation Links -->
@@ -48,7 +53,7 @@ new class extends Component
                         <span class="text-sm">{{ __('vespaket.profil') }}</span>
                     </x-nav-link>
 
-                    @if(auth()->user()->role == "coach")
+                    @if(auth()->user()->isCoach())
 
                     <div class="px-1 pt-1 my-1">
                         <x-dropdown align="right" width="48">

@@ -12,7 +12,6 @@ class Manage extends Component
         'name' => '',
         'prenom' => '',
         'type' => 'player',
-        'birthdate' => '',
         'licence' => '',
         'numero' => '',
     ];
@@ -53,7 +52,6 @@ class Manage extends Component
                 'name' => $member->name,
                 'prenom' => $member->prenom,
                 'type' => $member->type,
-                'birthdate' => $member->birthdate,
                 'licence' => $member->licence,
                 'numero' => $member->numero,
             ])
@@ -99,7 +97,6 @@ class Manage extends Component
             'name' => '',
             'prenom' => '',
             'type' => 'player',
-            'birthdate' => '',
             'licence' => '',
             'numero' => '',
         ];
@@ -112,7 +109,6 @@ class Manage extends Component
             'newMember.name' => ['required', 'string', 'min:2'],
             'newMember.prenom' => ['nullable', 'string'],
             'newMember.type' => ['required', 'in:player,coach,staff'],
-            'newMember.birthdate' => ['nullable', 'date'],
             'newMember.licence' => ['nullable', 'string'],
             'newMember.numero' => ['nullable', 'integer'],
         ]);
@@ -129,7 +125,6 @@ class Manage extends Component
             "members.$index.name" => ['required', 'string', 'min:2'],
             "members.$index.prenom" => ['nullable', 'string'],
             "members.$index.type" => ['required', 'in:player,coach,staff'],
-            "members.$index.birthdate" => ['nullable', 'date'],
             "members.$index.licence" => ['nullable', 'string'],
             "members.$index.numero" => ['nullable', 'string'],
         ]);
@@ -139,7 +134,6 @@ class Manage extends Component
             'name' => $member['name'],
             'prenom' => $member['prenom'],
             'type' => $member['type'],
-            'birthdate' => $member['birthdate'],
             'licence' => $member['licence'],
             'numero' => $member['numero'],
         ]);

@@ -13,6 +13,8 @@ class Trainings extends Component
 
     public function mount()
     {
+        $this->authorize('TeamAccess', $this->team);
+        
         $now = \Carbon\Carbon::now();
         $this->nextTrainingId = null;
         foreach ($this->team->trainings as $training) {

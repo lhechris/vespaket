@@ -21,12 +21,12 @@ class Create extends Command
         $firstname = $this->ask('Prénom');
         $email = $this->ask('Email');
         $password = $this->secret('Mot de passe');
-        $role = $this->ask("Role (".User::ROLE_COACH.",".User::ROLE_PARENT.",".User::ROLE_PLAYER.")");
+        $role = $this->ask("Role (".User::ROLE_ADMIN.",".User::ROLE_COACH.",".User::ROLE_PARENT.",".User::ROLE_PLAYER.")");
         
         $user = User::create([
             'name' => $name,
             'firstname' => $firstname,
-            'email' => $email,
+            'email' => strtolower($email),
             'password' => Hash::make($password),
             'role' => $role,
         ]);        

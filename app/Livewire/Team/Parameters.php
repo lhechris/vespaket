@@ -22,6 +22,7 @@ class Parameters extends Component
 
     public function mount(): void
     {
+        $this->authorize('TeamAccess', $this->team);
         $this->typeOptions = GameOption::types();
         $this->displayOptions = GameOption::displays();
         $this->loadData();        
@@ -62,6 +63,8 @@ class Parameters extends Component
 
     public function delete($key): void
     {
+        $this->authorize('TeamAccess', $this->team);
+
         $data = $this->gameoptions[$key] ?? null;
 
         if ($data && ! empty($data['id'])) {
@@ -72,12 +75,16 @@ class Parameters extends Component
     }
 
     public function deleteTeam() {
+        $this->authorize('TeamAccess', $this->team);
+
         $this->team->delete();
         redirect(route('dashboard'));
     }
     
     public function saveAll(): void
     {
+        $this->authorize('TeamAccess', $this->team);
+
         $validated = validator($this->gameoptions, [
             '*.name'    => 'required|string|max:255',
             '*.type'    =>  ['required', Rule::in(array_keys(GameOption::types()))],
@@ -110,6 +117,8 @@ class Parameters extends Component
 
     public function render()
     {
+        $this->authorize('TeamAccess', $this->team);
+        
         return view('livewire.team.parameters');
     }
 }

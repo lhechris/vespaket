@@ -4,7 +4,7 @@
     <div class="bg-gray-900 text-yellow-400 p-4 rounded-2xl shadow hover:shadow-lg transition hover:-translate-y-1">
 
         <!-- HEADER CARD -->
-        <div class="flex justify-between items-center mb-2">
+        <div class="flex justify-between items-center mb-2 h-16">
 
             <p class="font-semibold">{{ $title }}</p>
             @isset($description)
