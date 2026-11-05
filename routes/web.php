@@ -10,6 +10,12 @@ use App\Livewire\Training;
 use App\Livewire\Event;
 use App\Livewire\Gymnase;
 use App\Livewire\News;
+use App\Livewire\Championship\Index as ChampionshipIndex;
+use App\Livewire\Championship\Manage as ChampionshipManage;
+use App\Livewire\Championship\Show as ChampionshipShow;
+use App\Livewire\Championship\Gameday\Create as GamedayCreate;
+use App\Livewire\Championship\Gameday\Edit as GamedayEdit;
+
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Auth;
 
@@ -33,6 +39,9 @@ Route::middleware(['auth'])->group(function () {
     
     Route::post('/push/subscribe', [PushSubscriptionController::class, 'store'])->middleware('auth');
     Route::delete('/push/unsubscribe', [PushSubscriptionController::class, 'destroy'])->middleware('auth');
+
+    Route::get('/championship/show/{team}', ChampionshipShow::class)->name('championship.show');
+
 });
 
 
@@ -46,10 +55,17 @@ Route::middleware(['auth', 'isCoach'])->group(function () {
     Route::get('/team/{team}/owners', Team\Owners::class)->name('team.owners');
     Route::get('/members', Member\Manage::class)->name("members");
     Route::get('/users', User\Manage::class)->name("users");
+
     Route::get('/teams/create', Team\Create::class)->name('teams.create');
     Route::get('/team/{team}/games/create', Game\Create::class)->name('team.games.create');
     Route::get('/team/{team}/trainings/create', Training\Create::class)->name('team.trainings.create');
     Route::get('/team/{team}/events/create', Event\Create::class)->name('team.events.create');
+
+    Route::get('/team/{team}/championships', ChampionshipIndex::class)->name('team.championship.index');
+    Route::get('/team/{team}/championship/create', ChampionshipManage::class)->name('team.championship.manage');
+    Route::get('/team/{team}/championship/{championship}/edit', ChampionshipManage::class)->name('team.championship.edit');
+    Route::get('/team/{team}/championship/{championship}/gamedays/create', GamedayCreate::class)->name('team.championship.gamedays.create');
+    Route::get('/team/{team}/championship/{championship}/gamedays/{gameday}/edit', GamedayEdit::class)->name('team.championship.gamedays.edit');
 
     Route::get('/events/edit/{event}', Event\Edit::class)->name('event.edit');
 

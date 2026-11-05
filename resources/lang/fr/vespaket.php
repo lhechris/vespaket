@@ -17,6 +17,7 @@ return [
     "cant_modify_admin"     => "Vous ne pouvez pas modifier un compte administrateur.",
     "checkbox"              => "Case à cocher",
     "clic_or_drag_marker"   => "cliquer ou glisser le marqueur pour ajuster",
+    "club"                  => "Club",
     "coach"                 => "Entraineur",
     "coaches"               => "Entraineurs",
     "confirm_delete"        => "Confirmez la suppression?",

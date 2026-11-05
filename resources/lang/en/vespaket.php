@@ -17,6 +17,7 @@ return [
     "cant_modify_admin"     => "You cannot modify an administrator account.",
     "checkbox"              => "Checkbox",
     "clic_or_drag_marker"   => "Click or drag the marker to adjust",
+    "club"                  => "Club",
     "coach"                 => "Coach",
     "coaches"               => "Coaches",
     "confirm_delete"        => "Confirm deletion?",

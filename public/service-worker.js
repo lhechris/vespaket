@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sport-app-v1.1';
+const CACHE_NAME = 'vespaket-v1.0';
 const URLS_TO_CACHE = [
   '/',
   '/offline.html',

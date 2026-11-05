@@ -17,7 +17,8 @@ class Create extends Component
             'name' => 'required|min:3'
         ]);
 
-        $this->authorize('TeamCreate');
+
+        $this->authorize('TeamCreate',Team::class);
 
         $team = Team::create([
             'name' => $this->name,
