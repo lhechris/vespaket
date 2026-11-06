@@ -7,7 +7,9 @@ use App\Models\ChampionshipGamedays;
 use App\Models\ChampionshipGames;
 use App\Models\ChampionshipTeam;
 use App\Services\ChampionshipService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class ChampionshipServiceTest extends TestCase
@@ -129,5 +131,156 @@ class ChampionshipServiceTest extends TestCase
             'played' => 0,
             'points' => 0,
         ]);
+    }
+
+    public function test_it_refreshes_all_scorenco_gamedays_scheduled_for_today(): void
+    {
+        Carbon::setTestNow('2026-11-06 12:00:00');
+
+        try {
+            $championships = collect(['Championnat A', 'Championnat B'])
+                ->map(fn (string $name): Championship => Championship::create([
+                    'name' => $name,
+                    'season' => '2026-2027',
+                ]));
+
+            $firstMatchday = ChampionshipGamedays::create([
+                'championship_id' => $championships[0]->id,
+                'number' => 1,
+                'label' => 'Journée 1',
+                'date' => '2026-11-07',
+                'source' => 'scorenco',
+                'external_id' => '14284752',
+            ]);
+            $secondMatchday = ChampionshipGamedays::create([
+                'championship_id' => $championships[1]->id,
+                'number' => 1,
+                'label' => 'Journée 1',
+                'date' => '2026-11-05',
+                'source' => 'scorenco',
+                'external_id' => '14284753',
+            ]);
+            $matchdayWithNoGamesToday = ChampionshipGamedays::create([
+                'championship_id' => $championships[0]->id,
+                'number' => 2,
+                'date' => '2026-11-06',
+                'source' => 'scorenco',
+                'external_id' => '14284754',
+            ]);
+            ChampionshipGamedays::create([
+                'championship_id' => $championships[1]->id,
+                'number' => 2,
+                'date' => '2026-11-06',
+                'source' => 'scorenco',
+                'external_id' => 'date:2026-11-06',
+            ]);
+
+            $firstHomeTeam = ChampionshipTeam::create([
+                'championship_id' => $championships[0]->id,
+                'name' => 'Équipe locale A',
+            ]);
+            $firstAwayTeam = ChampionshipTeam::create([
+                'championship_id' => $championships[0]->id,
+                'name' => 'Équipe visiteuse A',
+            ]);
+            ChampionshipGames::create([
+                'matchday_id' => $firstMatchday->id,
+                'home_team_id' => $firstHomeTeam->id,
+                'away_team_id' => $firstAwayTeam->id,
+                'scheduled_at' => '2026-11-06 19:00:00',
+                'status' => 'scheduled',
+                'source' => 'scorenco',
+                'external_id' => 'existing-match-1',
+            ]);
+            ChampionshipGames::create([
+                'matchday_id' => $firstMatchday->id,
+                'home_team_id' => $firstHomeTeam->id,
+                'away_team_id' => $firstAwayTeam->id,
+                'scheduled_at' => '2026-11-06 20:00:00',
+                'status' => 'scheduled',
+                'source' => 'scorenco',
+                'external_id' => 'existing-match-2',
+            ]);
+
+            $secondHomeTeam = ChampionshipTeam::create([
+                'championship_id' => $championships[1]->id,
+                'name' => 'Équipe locale B',
+            ]);
+            $secondAwayTeam = ChampionshipTeam::create([
+                'championship_id' => $championships[1]->id,
+                'name' => 'Équipe visiteuse B',
+            ]);
+            ChampionshipGames::create([
+                'matchday_id' => $secondMatchday->id,
+                'home_team_id' => $secondHomeTeam->id,
+                'away_team_id' => $secondAwayTeam->id,
+                'scheduled_at' => '2026-11-06 21:00:00',
+                'status' => 'scheduled',
+                'source' => 'scorenco',
+                'external_id' => 'existing-match-3',
+            ]);
+
+            ChampionshipGames::create([
+                'matchday_id' => $matchdayWithNoGamesToday->id,
+                'home_team_id' => $firstHomeTeam->id,
+                'away_team_id' => $firstAwayTeam->id,
+                'scheduled_at' => '2026-11-07 19:00:00',
+                'status' => 'scheduled',
+                'source' => 'scorenco',
+                'external_id' => 'existing-match-4',
+            ]);
+
+            Http::fake([
+                'graphql.scorenco.com/*' => Http::sequence()
+                    ->push(['data' => [
+                        'competitions_event_detail_by_round_day_id' => [$this->scorencoMatch(1)],
+                    ]])
+                    ->push(['data' => [
+                        'competitions_event_detail_by_round_day_id' => [$this->scorencoMatch(2)],
+                    ]]),
+            ]);
+
+            $importedGames = app(ChampionshipService::class)->refreshGamedays();
+
+            $this->assertSame(2, $importedGames);
+            $this->assertDatabaseCount('championship_gamedays', 4);
+            $this->assertDatabaseCount('championship_games', 6);
+            $this->assertDatabaseHas('championship_games', [
+                'source' => 'scorenco',
+                'external_id' => 'match-1',
+            ]);
+            $this->assertDatabaseHas('championship_games', [
+                'source' => 'scorenco',
+                'external_id' => 'match-2',
+            ]);
+            Http::assertSentCount(2);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function scorencoMatch(int $id): array
+    {
+        return [
+            'id' => 'match-'.$id,
+            'status' => 'scheduled',
+            'date' => '2026-11-06',
+            'time' => '2026-11-06T19:00:00+01:00',
+            'teams' => [
+                [
+                    'role' => 'home',
+                    'team_id' => 100 + $id,
+                    'name_in_competition' => 'Équipe domicile '.$id,
+                ],
+                [
+                    'role' => 'away',
+                    'team_id' => 200 + $id,
+                    'name_in_competition' => 'Équipe extérieur '.$id,
+                ],
+            ],
+        ];
     }
 }

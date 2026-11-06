@@ -15,6 +15,9 @@ use App\Livewire\Championship\Manage as ChampionshipManage;
 use App\Livewire\Championship\Show as ChampionshipShow;
 use App\Livewire\Championship\Gameday\Create as GamedayCreate;
 use App\Livewire\Championship\Gameday\Edit as GamedayEdit;
+use App\Livewire\Championship\Games\Create as ChampionshipGameCreate;
+use App\Livewire\Championship\Games\Edit as ChampionshipGameEdit;
+use App\Livewire\Championship\Games\Index as ChampionshipGameIndex;
 
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Auth;
@@ -66,6 +69,9 @@ Route::middleware(['auth', 'isCoach'])->group(function () {
     Route::get('/team/{team}/championship/{championship}/edit', ChampionshipManage::class)->name('team.championship.edit');
     Route::get('/team/{team}/championship/{championship}/gamedays/create', GamedayCreate::class)->name('team.championship.gamedays.create');
     Route::get('/team/{team}/championship/{championship}/gamedays/{gameday}/edit', GamedayEdit::class)->name('team.championship.gamedays.edit');
+    Route::get('/team/{team}/championship/{championship}/gamedays/{gameday}/games', ChampionshipGameIndex::class)->name('team.championship.gamedays.games.index');
+    Route::get('/team/{team}/championship/{championship}/gamedays/{gameday}/games/create', ChampionshipGameCreate::class)->name('team.championship.gamedays.games.create');
+    Route::get('/team/{team}/championship/{championship}/gamedays/{gameday}/games/{game}/edit', ChampionshipGameEdit::class)->name('team.championship.gamedays.games.edit');
 
     Route::get('/events/edit/{event}', Event\Edit::class)->name('event.edit');
 

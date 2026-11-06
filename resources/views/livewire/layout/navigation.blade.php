@@ -66,7 +66,7 @@ new class extends Component
                         <span class="text-sm">{{ __('actions.home') }}</span>
                     </x-nav-link>
                     <div class="px-1 pt-1 my-1">
-                        <x-dropdown align="right" width="48">
+                        <x-dropdown align="left" width="48">
                             <x-slot name="trigger">
                                 <button class="flex flex-col items-center gap-1 border border-transparent text-sm leading-4 font-medium rounded-md hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
                                     <img src="{{ asset('images/club-de-basket-ball.png') }}" alt="{{ __('vespaket.club') }}" class="h-6 w-6" />

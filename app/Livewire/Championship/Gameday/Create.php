@@ -88,8 +88,6 @@ class Create extends Component
             $this->scorencoDayLabel !== '' ? $this->scorencoDayLabel : null,
         );
 
-        $srv->refreshStanding($this->championship);
-
         session()->flash(
             'championship-refresh-success',
             $importedCount === 0

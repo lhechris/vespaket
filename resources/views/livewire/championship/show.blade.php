@@ -54,8 +54,10 @@
             <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                 <div>
                     <h2 id="matchday-heading" class="text-xl font-bold text-white">
-                        {{ $matchday?->label ?: ($matchday ? 'Journée '.$matchday->number : 'Rencontres') }}
+                            {{ $matchday?->label ?: ($matchday ? 'Journée '.$matchday->number : 'Rencontres') }}
+                        <span class="text-sm font-normal">via score'n'co</span>
                     </h2>
+
                     @if($matchday?->date)
                         <p class="mt-1 text-sm text-slate-300">{{ $matchday->date->translatedFormat('d F Y') }}</p>
                     @endif
@@ -68,17 +70,41 @@
                 @endcan
                 @endif
                 @if($matchdays->isNotEmpty())
-                    <nav aria-label="Choisir une journée" class="flex flex-wrap gap-2">
-                        @foreach($matchdays as $day)
-                            <button
-                                type="button"
-                                wire:click="selectMatchday({{ $day->id }})"
-                                aria-current="{{ $matchday?->id === $day->id ? 'true' : 'false' }}"
-                                class="rounded-lg px-3 py-2 text-sm font-semibold transition-colors {{ $matchday?->id === $day->id ? 'bg-amber-300 text-slate-900' : 'bg-slate-700 text-slate-200 hover:bg-slate-600' }}"
-                            >
-                                {{ $day->label ?: 'J'.$day->number }}
-                            </button>                            
-                        @endforeach
+                    <nav aria-label="Choisir une journée" class="flex w-full items-center gap-2 sm:w-auto">
+                        <button
+                            type="button"
+                            wire:click="previousMatchday"
+                            @disabled($matchday?->id === $matchdays->first()?->id)
+                            aria-label="Journée précédente"
+                            class="shrink-0 rounded-lg bg-slate-700 p-2 text-slate-200 hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <svg aria-hidden="true" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 0 1-.02 1.06L9.06 10l3.71 3.71a.75.75 0 1 1-1.06 1.06l-4.24-4.24a.75.75 0 0 1 0-1.06l4.24-4.24a.75.75 0 0 1 1.08 0Z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <label class="sr-only" for="matchday-select">Choisir une journée</label>
+                        <select
+                            id="matchday-select"
+                            wire:change="selectMatchday($event.target.value)"
+                            class="min-w-0 flex-1 rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-sm font-semibold text-white sm:flex-none"
+                        >
+                            @foreach($matchdays as $day)
+                                <option value="{{ $day->id }}" @selected($matchday?->id === $day->id)>
+                                    {{ $day->label ?: 'Journée '.$day->number }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <button
+                            type="button"
+                            wire:click="nextMatchday"
+                            @disabled($matchday?->id === $matchdays->last()?->id)
+                            aria-label="Journée suivante"
+                            class="shrink-0 rounded-lg bg-slate-700 p-2 text-slate-200 hover:bg-slate-600 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <svg aria-hidden="true" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L10.94 10 7.23 6.29a.75.75 0 1 1 1.06-1.06l4.24 4.24a.75.75 0 0 1 0 1.06l-4.24 4.24a.75.75 0 0 1-1.08 0Z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                     </nav>
                 @endif
             </div>
@@ -94,7 +120,7 @@
                                 </p>
                             @endif
                             <div class="flex items-center justify-between gap-3">
-                                <span class="min-w-0 flex-1 text-right font-semibold {{ $game->homeTeam?->team_id === $team->id ? 'text-amber-200' : 'text-white' }}">
+                                <span class="min-w-0 flex-1 text-right font-semibold text-xs {{ $game->homeTeam?->team_id === $team->id ? 'text-amber-200' : 'text-white' }}">
                                     {{ $game->homeTeam?->name ?? 'Équipe inconnue' }}
                                 </span>
                                 @if($game->home_score !== null && $game->away_score !== null)
@@ -112,7 +138,7 @@
                                         {{ $game->status === 'postponed' ? 'Reporté' : 'À venir' }}
                                     </span>
                                 @endif
-                                <span class="min-w-0 flex-1 font-semibold {{ $game->awayTeam?->team_id === $team->id ? 'text-amber-200' : 'text-white' }}">
+                                <span class="min-w-0 flex-1 font-semibold text-xs {{ $game->awayTeam?->team_id === $team->id ? 'text-amber-200' : 'text-white' }}">
                                     {{ $game->awayTeam?->name ?? 'Équipe inconnue' }}
                                 </span>
                             </div>
@@ -134,7 +160,7 @@
                 <h2 id="standings-heading" class="text-xl font-bold text-white">Classement</h2>
                 @if($snapshot)
                     <p class="mt-1 text-sm text-slate-300">
-                        Mis à jour le {{ $snapshot->captured_at->translatedFormat('d/m/Y à H:i') }} via Score'n'co
+                        Mis à jour le {{ $snapshot->captured_at->translatedFormat('d/m/Y à H:i') }}
                     </p>
                 @endif
             </div>

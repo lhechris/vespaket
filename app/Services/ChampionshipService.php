@@ -15,16 +15,56 @@ use UnexpectedValueException;
 class ChampionshipService
 {
     /**
+     * Synchronise les journées Scorenco contenant des matchs prévus aujourd'hui.
+     */
+    public function refreshGamedays(): int
+    {
+        $gamedays = ChampionshipGames::query()
+            ->whereDate('scheduled_at', Carbon::today())
+            ->where('source', 'scorenco')
+            ->whereHas('matchday', fn ($query) => $query
+                ->where('source', 'scorenco')
+                ->whereNotNull('external_id'))
+            ->with('matchday')
+            ->orderBy('matchday_id')
+            ->orderBy('id')
+            ->get()
+            ->pluck('matchday')
+            ->unique('id');
+
+        $importedGames = 0;
+
+        foreach ($gamedays as $gameday) {
+            $roundEventId = filter_var($gameday->external_id, FILTER_VALIDATE_INT);
+
+            if ($roundEventId === false || $roundEventId < 1) {
+                continue;
+            }
+
+            $importedGames += $this->refreshGameday(
+                $roundEventId,
+                $gameday->championship_id,
+                $gameday->number,
+                $gameday->label,
+            );
+        }
+
+        return $importedGames;
+    }
+
+    /**
      * Synchronise une journée Scorenco et ses matchs dans le championnat.
      */
     public function refreshGameday(int $roundEventId, int $championshipId, ?int $daynumber, ?string $label): int
     {
 
-        $sc = app(\App\Services\ScorencoService::class);
+        \Log::info("Refresh la journée $roundEventId du championnat $championshipId");
+        $sc = app(ScorencoService::class);
 
         $matches = $sc->getRoundEvents($roundEventId);
 
         if ($matches === []) {
+            \Log::info("Auncun match retourné par score'n'co");
             return 0;
         }
 
@@ -109,18 +149,20 @@ class ChampionshipService
                     ]
                 );
             }
-
-            return count($normalizedMatches);
+            $n=count($normalizedMatches);
+            \Log::info("$n matchs mis à jour ou ajouté");
+            if ($n>0) {
+                $this->refreshStanding($championship);
+            }
+            return $n;
         });
     }
 
     /**
      * Met à jour le championnat
      */
-    public function refreshStanding(Championship $championship): ChampionshipStandingSnapshots
+    private function refreshStanding(Championship $championship): ChampionshipStandingSnapshots
     {
-        return DB::transaction(function () use ($championship): ChampionshipStandingSnapshots {
-            $championship = Championship::query()->findOrFail($championship->id);
             $teams = $championship->teams()->orderBy('id')->get();
             $standings = [];
 
@@ -226,7 +268,6 @@ class ChampionshipService
             }
 
             return $snapshot;
-        });
     }
 
     /**

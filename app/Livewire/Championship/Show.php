@@ -5,11 +5,10 @@ namespace App\Livewire\Championship;
 use App\Models\Championship as ChampionshipModel;
 use App\Models\ChampionshipGamedays;
 use App\Models\Team as TeamModel;
+use App\Services\ChampionshipService;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
-
-use App\Services\ChampionshipService;
 
 class Show extends Component
 {
@@ -53,6 +52,40 @@ class Show extends Component
             ->id;
     }
 
+    public function previousMatchday(): void
+    {
+        $this->moveMatchday(-1);
+    }
+
+    public function nextMatchday(): void
+    {
+        $this->moveMatchday(1);
+    }
+
+    private function moveMatchday(int $direction): void
+    {
+        if (! $this->championshipId || ! $this->selectedMatchdayId) {
+            return;
+        }
+
+        $matchdayIds = ChampionshipGamedays::query()
+            ->where('championship_id', $this->championshipId)
+            ->orderBy('number')
+            ->orderBy('id')
+            ->pluck('id');
+        $currentIndex = $matchdayIds->search($this->selectedMatchdayId);
+
+        if ($currentIndex === false) {
+            abort(404);
+        }
+
+        $nextMatchdayId = $matchdayIds->get($currentIndex + $direction);
+
+        if ($nextMatchdayId !== null) {
+            $this->selectedMatchdayId = (int) $nextMatchdayId;
+        }
+    }
+
     private function championships(): Builder
     {
         return ChampionshipModel::query()
@@ -66,10 +99,6 @@ class Show extends Component
             ->orderBy('number')
             ->get();
 
-        foreach($matchdays as $m) {
-            \Log::debug("$m->id $m->number $m->date");
-        }
-
         return $matchdays->first(function (ChampionshipGamedays $matchday): bool {
             return $matchday->games->contains(
                 fn ($game): bool => $game->scheduled_at?->isFuture() && $game->status !== 'completed'
@@ -79,14 +108,13 @@ class Show extends Component
             ?? $matchdays->last();
     }
 
-    public function refreshMatchday(ChampionshipService $srv, $id) {
+    public function refreshMatchday(ChampionshipService $srv, $id)
+    {
         $matchday = ChampionshipGamedays::query()
             ->where('championship_id', $this->championshipId)
             ->findOrFail($id);
         $this->authorize('update', $matchday);
-        $championship = ChampionshipModel::findOrFail($this->championshipId);
-        $srv->refreshGameday($matchday->external_id,$this->championshipId,null,null);
-        $srv->refreshStanding($championship);
+        $srv->refreshGameday($matchday->external_id, $this->championshipId, null, null);
     }
 
     public function render()
@@ -99,7 +127,10 @@ class Show extends Component
             ? $championships->firstWhere('id', $this->championshipId)
             : null;
         $matchdays = $championship
-            ? $championship->gamedays()->with(['games.homeTeam', 'games.awayTeam'])->get()
+            ? $championship->gamedays()
+                ->with(['games.homeTeam', 'games.awayTeam'])
+                ->orderBy('id')
+                ->get()
             : collect();
         $matchday = $matchdays->firstWhere('id', $this->selectedMatchdayId);
         $snapshot = $championship?->standingSnapshots()

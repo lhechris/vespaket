@@ -32,6 +32,13 @@
                             @endif
                             · {{ $gameday->games_count }} match(s)
                         </p>
+                        <a
+                            href="{{ route('team.championship.gamedays.games.index', [$team, $championship, $gameday]) }}"
+                            wire:navigate
+                            class="mt-2 inline-block text-sm font-semibold text-amber-200 hover:text-amber-100"
+                        >
+                            Voir les matchs
+                        </a>
                     </div>
                     @can('update', $gameday)
                         <a

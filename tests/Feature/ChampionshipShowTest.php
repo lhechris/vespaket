@@ -82,7 +82,7 @@ class ChampionshipShowTest extends TestCase
             ->assertSee('Championnat départemental')
             ->assertSee('Vespaket U13')
             ->assertSee('Basket du Val')
-            ->assertSee('J3')
+            ->assertSee('Journée 3')
             ->assertSee('Classement')
             ->assertSee('120')
             ->assertSee('Mis à jour le');
@@ -125,10 +125,20 @@ class ChampionshipShowTest extends TestCase
         Livewire::actingAs($user)
             ->test(Show::class, ['team' => $team])
             ->assertSet('selectedMatchdayId', $secondMatchday->id)
+            ->assertSee('Journée précédente')
+            ->assertSee('Journée suivante')
+            ->assertSee('Journée 1')
+            ->call('previousMatchday')
+            ->assertSet('selectedMatchdayId', $firstMatchday->id)
+            ->call('previousMatchday')
+            ->assertSet('selectedMatchdayId', $firstMatchday->id)
+            ->call('nextMatchday')
+            ->assertSet('selectedMatchdayId', $secondMatchday->id)
+            ->call('nextMatchday')
+            ->assertSet('selectedMatchdayId', $secondMatchday->id)
             ->call('selectMatchday', $firstMatchday->id)
             ->assertSet('selectedMatchdayId', $firstMatchday->id)
             ->assertSee('Journée 1')
             ->assertSee('Aucune rencontre enregistrée pour cette journée.');
     }
-
 }

@@ -15,7 +15,6 @@ class TeamPolicy
 
     public function TeamCreate(User $user): bool
     {
-        \Log::debug("TeamCreate");
         return $user->isAdmin() || $user->isCoach();
     }
 }
