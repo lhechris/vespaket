@@ -108,13 +108,10 @@ class Show extends Component
             ?? $matchdays->last();
     }
 
-    public function refreshMatchday(ChampionshipService $srv, $id)
+    public function refresh(ChampionshipService $srv, $id)
     {
-        $matchday = ChampionshipGamedays::query()
-            ->where('championship_id', $this->championshipId)
-            ->findOrFail($id);
-        $this->authorize('update', $matchday);
-        $srv->refreshGameday($matchday->external_id, $this->championshipId, null, null);
+        $championship = Championship::query()->findOrFail($id);
+        $srv->refresh($championship);
     }
 
     public function render()
@@ -129,6 +126,7 @@ class Show extends Component
         $matchdays = $championship
             ? $championship->gamedays()
                 ->with(['games.homeTeam', 'games.awayTeam'])
+                ->orderBy('number')
                 ->orderBy('id')
                 ->get()
             : collect();

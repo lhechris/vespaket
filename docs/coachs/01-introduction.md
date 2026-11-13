@@ -15,5 +15,5 @@ Vespaket aide les équipes sportives à organiser leurs activités au quotidien.
 
 Les **utilisateurs** : ce sont les personnes pouvant se connecter à l'aplication via un compte google ou un login/password
 
-Les **membres** : ces sont les licenciés (joueurs ou staff) qui peuvent ou non être associé à un (ou plusieurs) utilisateur(s). 
+Les **membres** : ces sont les licenciés (joueurs ou otm) qui peuvent ou non être associé à un (ou plusieurs) utilisateur(s). 
 

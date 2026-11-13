@@ -29,7 +29,26 @@
                         >
                             Modifier le championnat
                         </a>
+                        <div>
+                            <button
+                                type="button"
+                                wire:click="refresh({{ $championship->id }})"
+                                wire:loading.attr="disabled"
+                                wire:target="refresh"
+                                class="mt-2 inline-flex items-center gap-2 rounded-lg bg-slate-700 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-600 disabled:cursor-wait disabled:opacity-60"
+                            >
+                                <span wire:loading.remove wire:target="refresh">{{ __('vespaket.refresh') }}</span>
+                                <span wire:loading wire:target="refresh" class="inline-flex items-center gap-2">
+                                    <svg aria-hidden="true" class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 0 1 4 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                    </svg>
+                                    Synchronisation…
+                                </span>
+                            </button>
+                        </div>
                     @endcan
+
                 </div>
 
                 @if($championships->count() > 1)
@@ -55,20 +74,13 @@
                 <div>
                     <h2 id="matchday-heading" class="text-xl font-bold text-white">
                             {{ $matchday?->label ?: ($matchday ? 'Journée '.$matchday->number : 'Rencontres') }}
-                        <span class="text-sm font-normal">via score'n'co</span>
+                                <span class="text-sm font-normal">via FFBB </span>
                     </h2>
 
                     @if($matchday?->date)
                         <p class="mt-1 text-sm text-slate-300">{{ $matchday->date->translatedFormat('d F Y') }}</p>
                     @endif
                 </div>
-                @if($matchday)
-                @can('update', $matchday)
-                <div>
-                    <button wire:click="refreshMatchday({{ $matchday->id }})">refresh</button>
-                </div>
-                @endcan
-                @endif
                 @if($matchdays->isNotEmpty())
                     <nav aria-label="Choisir une journée" class="flex w-full items-center gap-2 sm:w-auto">
                         <button
@@ -85,11 +97,12 @@
                         <label class="sr-only" for="matchday-select">Choisir une journée</label>
                         <select
                             id="matchday-select"
+                            wire:key="matchday-select-{{ $selectedMatchdayId }}"
                             wire:change="selectMatchday($event.target.value)"
                             class="min-w-0 flex-1 rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-sm font-semibold text-white sm:flex-none"
                         >
                             @foreach($matchdays as $day)
-                                <option value="{{ $day->id }}" @selected($matchday?->id === $day->id)>
+                                <option value="{{ $day->id }}" @selected((int) $selectedMatchdayId === (int) $day->id)>
                                     {{ $day->label ?: 'Journée '.$day->number }}
                                 </option>
                             @endforeach

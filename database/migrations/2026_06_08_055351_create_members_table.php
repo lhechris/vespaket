@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('prenom');
-            $table->string('type'); // player, coach, staff
+            $table->string('type'); // player, coach, otm
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
             $table->string('licence')->nullable();
             $table->integer('numero')->nullable();

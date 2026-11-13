@@ -57,6 +57,18 @@ class ChampionshipGamedayManagementTest extends TestCase
         ]);
     }
 
+    public function test_a_scorenco_championship_does_not_offer_an_import_action(): void
+    {
+        [, $team, $championship] = $this->createOwnedChampionship();
+        $championship->update(['source' => 'scorenco']);
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
+        Livewire::actingAs($admin)
+            ->test(Create::class, ['team' => $team, 'championship' => $championship])
+            ->assertDontSee('Importer depuis')
+            ->assertDontSee('Identifiant Scorenco');
+    }
+
     public function test_a_gameday_number_must_be_unique_within_its_championship(): void
     {
         [, $team, $championship] = $this->createOwnedChampionship();

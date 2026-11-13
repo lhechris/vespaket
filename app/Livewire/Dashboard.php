@@ -73,16 +73,18 @@ class Dashboard extends Component
 
         if ($games->isNotEmpty()) {
 
+            if (session()->has('notified')) return;
+            session()->put('notified', true);
+
             $game = $games->first();
 
             $this->dispatch('notify', [
                 'title' => '🏀 Match bientôt',
-                'body' => 'Tu as des disponibilités à renseigner'
+                'body' => 'Merci de renseigner les disponibilités pour le match '
+                            .$game->team->name.
+                            ' de '.Carbon::parse($game->date)->translatedFormat('l d F'),
             ]);
             
-            if (session()->has('notified')) return;
-            session()->put('notified', true);
-
         }
     }
 

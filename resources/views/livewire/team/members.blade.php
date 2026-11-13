@@ -14,14 +14,20 @@
     <div>
         <h2 class="text-lg font-semibold mb-2">{{ __('vespaket.coaches') }}</h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
 
-            @forelse($team->coaches as $coach)
-                <x-card title="{{ $coach->prenom }}" tag=" {{ $coach->licence ?? '.....' }}" />
-            @empty
-                <p class="text-gray-500">{{ __('vespaket.no_coach') }}</p>
-            @endforelse
-
+        <div class="flex gap-4">
+            <table class="w-full text-sm text-left rtl:text-right text-body text-yellow-400">
+                <tbody>
+                    @forelse($team->coaches as $coach)
+                    <tr class="odd:bg-gray-800 even:bg-gray-900 border-b border-default">
+                        <td class="px-2 py-4">{{ $coach->prenom }}</td>
+                        <td class="px-2 py-4">{{ $coach->licence ?? '.....' }}</td>
+                    </tr>
+                    @empty
+                    <tr class="text-gray-500">{{ __('vespaket.no_coach') }}</tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -54,7 +60,7 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($members as $player)
+                @forelse($players as $player)
                 <tr class="odd:bg-gray-800 even:bg-gray-900 border-b border-default">
                     @if ($editingMemberId === $player->id)
                         <td class="px-2 py-4">
@@ -91,4 +97,57 @@
             </tbody>
         </table>
     </div>
+
+
+    <div class="flex gap-4 mb-2 mt-2">
+        <h2 class="text-lg font-semibold mb-4">{{ __('vespaket.otm_full') }}</h2>
+    </div>
+
+    <div class="flex gap-4">
+        <table class="w-full text-sm text-left rtl:text-right text-body text-yellow-400">
+            <thead class="bg-black border-b border-default">
+                <tr>
+                    <th scope="col" class="px-2 py-3 font-medium">{{ __('Name') }}</th>
+                    <th scope="col" class="px-2 py-3 font-medium">{{ __('vespaket.licence') }}</th>
+                    <th scope="col" class="px-2 py-3 font-medium">{{ __('vespaket.matchs') }}</th>
+                    <th scope="col" class="px-2 py-3 font-medium"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($otms as $otm)
+                <tr class="odd:bg-gray-800 even:bg-gray-900 border-b border-default">
+                    @if ($editingMemberId === $otm->id)
+                        <td class="px-2 py-4">
+                            <input type="text" wire:model="editingMember.prenom" class="w-full rounded border-gray-700 bg-yellow-200 px-2 py-1 text-black">
+                            @error('editingMember.prenom') <span class="text-red-400">{{ $message }}</span> @enderror
+                            <input type="text" wire:model="editingMember.name" class="w-full rounded border-gray-700 bg-yellow-200 px-2 py-1 text-black">
+                            @error('editingMember.name') <span class="text-red-400">{{ $message }}</span> @enderror
+                        </td>
+                        <td class="px-2 py-4">
+                            <input type="text" wire:model="editingMember.licence" class="w-full rounded border-gray-700 bg-yellow-200 px-2 py-1 text-black">
+                            @error('editingMember.licence') <span class="text-red-400">{{ $message }}</span> @enderror
+                        </td>
+                    @else
+                        <td class="px-2 py-4">{{ $otm->prenom }} {{ $otm->name }}</td>
+                        <td class="px-2 py-4">{{ $otm->licence ?? '.....' }}</td>
+                    @endif
+                    <td class="px-2 py-4">{{ $otm->games_count }}</td>
+                    <td class="px-2 py-4">
+                        @if ($editingMemberId === $otm->id)
+                            <button wire:click="saveMember" type="button" class="mr-2 text-sm text-green-400 hover:underline">{{ __('actions.save') }}</button>
+                            <button wire:click="cancelEdit" type="button" class="text-sm text-gray-300 hover:underline">{{ __('actions.cancel') }}</button>
+                        @else
+                            <button wire:click="editMember({{ $otm->id }})" type="button" class="text-sm text-white hover:underline">{{ __('actions.edit') }}</button>
+                        @endif
+                    </td>
+                </tr>
+                @empty
+                <tr class="text-gray-500"> {{ __('vespaket.no_otm') }}</tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+
+
 </div>

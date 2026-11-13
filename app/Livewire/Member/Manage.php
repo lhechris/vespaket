@@ -108,7 +108,7 @@ class Manage extends Component
         $this->validate([
             'newMember.name' => ['required', 'string', 'min:2'],
             'newMember.prenom' => ['nullable', 'string'],
-            'newMember.type' => ['required', 'in:player,coach,staff'],
+            'newMember.type' => ['required', 'in:player,coach,otm'],
             'newMember.licence' => ['nullable', 'string'],
             'newMember.numero' => ['nullable', 'integer'],
         ]);
@@ -124,7 +124,7 @@ class Manage extends Component
         $this->validate([
             "members.$index.name" => ['required', 'string', 'min:2'],
             "members.$index.prenom" => ['nullable', 'string'],
-            "members.$index.type" => ['required', 'in:player,coach,staff'],
+            "members.$index.type" => ['required', 'in:player,coach,otm'],
             "members.$index.licence" => ['nullable', 'string'],
             "members.$index.numero" => ['nullable', 'string'],
         ]);

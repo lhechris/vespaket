@@ -63,9 +63,9 @@ class Team extends Model
         return $this->members()->where('type',Member::TYPE_COACH);
     }
 
-    public function staffs()
+    public function otms()
     {
-        return $this->members()->where('type', Member::TYPE_STAFF);
+        return $this->members()->where('type', Member::TYPE_OTM);
     }
 
     public function isU11()

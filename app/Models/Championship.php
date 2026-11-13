@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'season', 'category', 'division', 'pool', 'status', 'source', 'external_id'])]
+#[Fillable(['name', 'season', 'category', 'division', 'pool', 'status', 'source', 'external_id', 'pool_external_id'])]
 class Championship extends Model
 {
     public function teams(): HasMany

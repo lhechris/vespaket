@@ -8,12 +8,14 @@ use App\Models\Team;
 class Members extends Component
 {
     public Team $team;
-    public $members;
+    public $players;
     public $coaches;
+    public $otms;
     public $owners;
     public ?int $editingMemberId = null;
     public array $editingMember = [
         'prenom' => '',
+        'name' => '',
         'licence' => '',
         'numero' => '',
     ];
@@ -26,11 +28,12 @@ class Members extends Component
 
         $this->coaches = $this->team->coaches()->get();
         $this->owners = $this->team->owners()->get();
+
     }
 
     private function loadMembers(): void
     {
-        $this->members = $this->team->members()
+        $this->players = $this->team->members()
                     ->withCount(['games as games_count' => function ($query) {
                         $query->where('game_member.selected', 1);
                     }])
@@ -39,7 +42,14 @@ class Members extends Component
                     }])
                     ->where('type',\App\Models\Member::TYPE_PLAYER)
                     ->get();
-    }
+
+        $this->otms = $this->team->members()
+                    ->withCount(['games as games_count' => function ($query) {
+                        $query->where('game_member.selected', 1);
+                    }])
+                    ->where('type',\App\Models\Member::TYPE_OTM)
+                    ->get();    }
+
 
     public function editMember(int $memberId): void
     {
@@ -47,6 +57,7 @@ class Members extends Component
 
         $this->editingMemberId = $member->id;
         $this->editingMember = [
+            'name' => $member->name ?? '',
             'prenom' => $member->prenom ?? '',
             'licence' => $member->licence ?? '',
             'numero' => $member->numero ?? '',
@@ -60,6 +71,7 @@ class Members extends Component
 
         $this->validate([
             'editingMember.prenom' => ['nullable', 'string'],
+            'editingMember.name' => ['nullable', 'string'],
             'editingMember.licence' => ['nullable', 'string'],
             'editingMember.numero' => ['nullable', 'string'],
         ]);

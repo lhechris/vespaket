@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('source')->default('manual');
             $table->string('external_id')->nullable();
+            $table->string('pool_external_id')->nullable();
             $table->timestamps();
 
             $table->unique(['championship_id', 'team_id']);

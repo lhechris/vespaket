@@ -11,7 +11,7 @@ class Member extends Model
     
     const TYPE_PLAYER = 'player';
     const TYPE_COACH = 'coach';
-    const TYPE_STAFF = 'staff';
+    const TYPE_OTM = 'otm';
 
     protected $fillable = [
         'name',
@@ -90,9 +90,9 @@ class Member extends Model
     {
         return $this->type === self::TYPE_PLAYER;
     }
-    public function isstaff() 
+    public function isotm() 
     {
-        return $this->type === self::TYPE_STAFF;
+        return $this->type === self::TYPE_OTM;
     }
     public function iscoach() 
     {

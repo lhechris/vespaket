@@ -21,10 +21,6 @@ class Create extends Component
     public string $label = '';
     public string $date = '';
 
-    public string $scorencoTeamId = '';
-    public string $scorencoDayNumber = '';
-    public string $scorencoDayLabel = '';
-
     public function mount(Team $team, Championship $championship): void
     {
         $this->championship = $championship;
@@ -75,24 +71,15 @@ class Create extends Component
     {
         $this->authorize('TeamAccess', $this->team);
         $this->authorize('create', ChampionshipGamedays::class);
+        abort_unless($this->championship->source === 'desimone', 404);
 
-        $validated = $this->validate([
-            'scorencoTeamId' => ['required', 'integer', 'min:1'],
-        ]);
-        $roundEvtId = (int) $validated['scorencoTeamId'];
-
-        $importedCount = $srv->refreshGameday(
-            $roundEvtId,
-            $this->championship->id,
-            $this->scorencoDayNumber !== '' ? (int) $this->scorencoDayNumber : null,
-            $this->scorencoDayLabel !== '' ? $this->scorencoDayLabel : null,
-        );
+        $importedCount = $srv->refresh($this->championship);
 
         session()->flash(
             'championship-refresh-success',
             $importedCount === 0
-                ? 'Aucun match correspondant à cette équipe n’a été trouvé sur Scorenco.'
-                : "{$importedCount} match(s) Scorenco synchronisé(s)."
+                ? 'Aucun match correspondant n’a été trouvé sur Desimone.'
+                : "{$importedCount} match(s) Desimone synchronisé(s)."
         );
     }
 

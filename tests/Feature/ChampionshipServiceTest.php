@@ -16,242 +16,267 @@ class ChampionshipServiceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_calculates_and_updates_standings_from_completed_games(): void
+    public function test_it_stores_and_updates_the_desimone_ranking(): void
     {
         $championship = Championship::create([
-            'name' => 'Championnat test',
+            'name' => 'Championnat Desimone',
             'season' => '2026-2027',
+            'source' => 'desimone',
+            'external_id' => 'pool-1',
         ]);
-        $teams = collect(['A', 'B', 'C', 'D'])
-            ->mapWithKeys(fn (string $name): array => [
-                $name => ChampionshipTeam::create([
-                    'championship_id' => $championship->id,
-                    'name' => 'Équipe '.$name,
-                ]),
-            ]);
-        $firstMatchday = ChampionshipGamedays::create([
-            'championship_id' => $championship->id,
-            'number' => 1,
-            'date' => '2026-10-31',
-        ]);
-        $secondMatchday = ChampionshipGamedays::create([
-            'championship_id' => $championship->id,
-            'number' => 2,
-            'date' => '2026-11-07',
+        $ranking = [[
+            'id_engagement' => ['id' => 'team-1', 'nom' => 'Équipe A'],
+            'position' => 1,
+            'points' => 2,
+            'match_joues' => 1,
+            'gagnes' => 1,
+            'perdus' => 0,
+            'paniers_marques' => 59,
+            'paniers_encaisses' => 15,
+            'penalites_arbitrage' => 1,
+            'penalites_entraineur' => 2,
+            'penalites_diverses' => 3,
+        ]];
+        $service = app(ChampionshipService::class);
+        $snapshot = $service->refreshStanding($championship, $ranking);
+        $entry = $snapshot->entries()->with('championshipTeam')->firstOrFail();
+
+        $this->assertSame('Équipe A', $entry->championshipTeam->name);
+        $this->assertDatabaseHas('championship_standing_entries', [
+            'standing_snapshot_id' => $snapshot->id,
+            'rank' => 1,
+            'played' => 1,
+            'won' => 1,
+            'lost' => 0,
+            'points_for' => 59,
+            'points_against' => 15,
+            'points' => 2,
+            'penalty_points' => 6,
         ]);
 
-        ChampionshipGames::create([
-            'matchday_id' => $firstMatchday->id,
-            'home_team_id' => $teams['A']->id,
-            'away_team_id' => $teams['B']->id,
-            'home_score' => 80,
-            'away_score' => 60,
-            'status' => 'completed',
+        $ranking[0]['points'] = 3;
+        $updatedSnapshot = $service->refreshStanding($championship, $ranking);
+        $this->assertSame($snapshot->id, $updatedSnapshot->id);
+        $this->assertDatabaseCount('championship_standing_snapshots', 1);
+        $this->assertDatabaseCount('championship_standing_entries', 1);
+        $this->assertDatabaseHas('championship_standing_entries', [
+            'standing_snapshot_id' => $snapshot->id,
+            'points' => 3,
         ]);
-        $secondGame = ChampionshipGames::create([
-            'matchday_id' => $secondMatchday->id,
-            'home_team_id' => $teams['B']->id,
-            'away_team_id' => $teams['C']->id,
-            'home_score' => 70,
+    }
+
+    public function test_it_refreshes_all_rounds_of_the_selected_desimone_pool(): void
+    {
+        $championship = Championship::create([
+            'name' => 'Championnat Desimone',
+            'season' => '2026-2027',
+            'source' => 'desimone',
+            'external_id' => '200000003063776',
+        ]);
+
+        $matches = [
+            $this->desimoneMatch('match-1', '1', '26', '50'),
+            $this->desimoneMatch('match-2', '1', 'None', 'None'),
+            $this->desimoneMatch('match-3', '2', '60', '55'),
+        ];
+        Http::fake([
+            'ffbb-api.desimone.fr/api/v1/poule/200000003063776' => Http::response([
+                'id' => '200000003063776',
+                'rencontres' => $matches,
+            ]),
+            'ffbb-api.desimone.fr/api/v1/poule/200000003063776/classement' => Http::response([
+                'classement' => $this->desimoneRanking($matches),
+            ]),
+        ]);
+
+        $importedGames = app(ChampionshipService::class)->refresh($championship);
+
+        $this->assertSame(3, $importedGames);
+        $this->assertDatabaseCount('championship_gamedays', 2);
+        $this->assertDatabaseHas('championship_gamedays', [
+            'championship_id' => $championship->id,
+            'source' => 'desimone',
+            'number' => 1,
+            'external_id' => '200000003063776:1',
+        ]);
+        $this->assertDatabaseHas('championship_games', [
+            'source' => 'desimone',
+            'external_id' => 'match-1',
+            'home_score' => 26,
             'away_score' => 50,
             'status' => 'completed',
         ]);
-        ChampionshipGames::create([
-            'matchday_id' => $secondMatchday->id,
-            'home_team_id' => $teams['C']->id,
-            'away_team_id' => $teams['D']->id,
-            'home_score' => 90,
-            'away_score' => 40,
+        $this->assertDatabaseHas('championship_games', [
+            'source' => 'desimone',
+            'external_id' => 'match-2',
+            'home_score' => null,
+            'away_score' => null,
             'status' => 'scheduled',
+        ]);
+        $this->assertDatabaseHas('championship_games', [
+            'source' => 'desimone',
+            'external_id' => 'match-3',
+        ]);
+        $this->assertDatabaseHas('championship_standing_entries', [
+            'rank' => 1,
+            'played' => 3,
+            'won' => 2,
+            'lost' => 1,
+            'points_for' => 68,
+            'points_against' => 65,
+            'points' => 5,
+        ]);
+
+        $this->assertSame(3, app(ChampionshipService::class)->refresh($championship->id));
+        $this->assertDatabaseCount('championship_gamedays', 2);
+        $this->assertDatabaseCount('championship_games', 3);
+        $this->assertDatabaseCount('championship_teams', 6);
+        $this->assertDatabaseCount('championship_standing_snapshots', 1);
+        $this->assertDatabaseCount('championship_standing_entries', 6);
+    }
+
+    public function test_it_imports_matches_and_adds_missing_championship_teams(): void
+    {
+        $championship = Championship::create([
+            'name' => 'Championnat Desimone',
+            'season' => '2026-2027',
+            'source' => 'desimone',
+            'external_id' => '200000003063776',
+        ]);
+        $match = $this->desimoneMatch('match-1', '1', '59', '15');
+
+        Http::fake([
+            'ffbb-api.desimone.fr/api/v1/poule/200000003063776' => Http::response([
+                'id' => '200000003063776',
+                'rencontres' => [$match],
+            ]),
+            'ffbb-api.desimone.fr/api/v1/poule/200000003063776/classement' => Http::response([
+                'classement' => [],
+            ]),
         ]);
 
         $service = app(ChampionshipService::class);
-        $snapshot = $service->refreshStanding($championship);
-        $entries = $snapshot->entries()->with('championshipTeam')->get()->keyBy('championshipTeam.name');
-
-        $this->assertSame($secondMatchday->id, $snapshot->matchday_id);
-        $this->assertCount(4, $entries);
-        $this->assertSame([2, 1, 1, 0], [
-            $entries['Équipe B']->played,
-            $entries['Équipe A']->played,
-            $entries['Équipe C']->played,
-            $entries['Équipe D']->played,
+        $this->assertSame(1, $service->refresh($championship->id));
+        $this->assertDatabaseCount('championship_teams', 2);
+        $this->assertDatabaseHas('championship_gamedays', [
+            'championship_id' => $championship->id,
+            'number' => 1,
+            'source' => 'desimone',
         ]);
-        $this->assertSame([3, 2, 1, 0], [
-            $entries['Équipe B']->points,
-            $entries['Équipe A']->points,
-            $entries['Équipe C']->points,
-            $entries['Équipe D']->points,
-        ]);
-        $this->assertSame([1, 1, 1, 0], [
-            $entries['Équipe B']->won,
-            $entries['Équipe B']->lost,
-            $entries['Équipe A']->won,
-            $entries['Équipe A']->lost,
-        ]);
-        $this->assertSame([130, 130], [
-            $entries['Équipe B']->points_for,
-            $entries['Équipe B']->points_against,
+        $this->assertDatabaseHas('championship_games', [
+            'source' => 'desimone',
+            'external_id' => 'match-1',
+            'home_score' => 59,
+            'away_score' => 15,
+            'status' => 'completed',
         ]);
 
-        $secondGame->update(['home_score' => 40, 'away_score' => 60]);
-        $updatedSnapshot = $service->refreshStanding($championship);
-
-        $this->assertSame($snapshot->id, $updatedSnapshot->id);
-        $this->assertDatabaseCount('championship_standing_snapshots', 1);
-        $this->assertDatabaseCount('championship_standing_entries', 4);
-        $this->assertDatabaseHas('championship_standing_entries', [
-            'standing_snapshot_id' => $snapshot->id,
-            'championship_team_id' => $teams['B']->id,
-            'played' => 2,
-            'won' => 0,
-            'lost' => 2,
-            'points' => 2,
-        ]);
+        $this->assertSame(1, $service->refresh($championship->id));
+        $this->assertDatabaseCount('championship_teams', 2);
+        $this->assertDatabaseCount('championship_gamedays', 1);
+        $this->assertDatabaseCount('championship_games', 1);
+        Http::assertSentCount(4);
     }
 
-    public function test_it_creates_zeroed_entries_when_no_games_have_been_played(): void
+    public function test_it_does_not_create_standing_entries_when_desimone_has_no_ranking(): void
     {
         $championship = Championship::create([
-            'name' => 'Championnat test',
+            'name' => 'Championnat Desimone',
             'season' => '2026-2027',
+            'source' => 'desimone',
+            'external_id' => '200000003063776',
         ]);
-        $team = ChampionshipTeam::create([
-            'championship_id' => $championship->id,
-            'name' => 'Équipe sans match',
+        $match = $this->desimoneMatch('match-new', '1', 'None', 'None');
+
+        Http::fake([
+            'ffbb-api.desimone.fr/api/v1/poule/200000003063776' => Http::response([
+                'id' => '200000003063776',
+                'rencontres' => [$match],
+            ]),
+            'ffbb-api.desimone.fr/api/v1/poule/200000003063776/classement' => Http::response([
+                'classement' => [],
+            ]),
         ]);
 
-        $snapshot = app(ChampionshipService::class)->refreshStanding($championship);
+        $this->assertSame(1, app(ChampionshipService::class)->refresh($championship->id));
 
-        $this->assertNull($snapshot->matchday_id);
-        $this->assertDatabaseHas('championship_standing_entries', [
-            'standing_snapshot_id' => $snapshot->id,
-            'championship_team_id' => $team->id,
-            'rank' => 1,
-            'played' => 0,
-            'points' => 0,
-        ]);
+        $this->assertDatabaseCount('championship_teams', 2);
+        $this->assertDatabaseCount('championship_gamedays', 1);
+        $this->assertDatabaseCount('championship_games', 1);
+        $this->assertDatabaseCount('championship_standing_snapshots', 1);
+        $this->assertDatabaseCount('championship_standing_entries', 0);
+
+        $this->assertSame(1, app(ChampionshipService::class)->refresh($championship->id));
+        $this->assertDatabaseCount('championship_teams', 2);
+        $this->assertDatabaseCount('championship_games', 1);
+        $this->assertDatabaseCount('championship_standing_entries', 0);
     }
 
-    public function test_it_refreshes_all_scorenco_gamedays_scheduled_for_today(): void
+    public function test_it_refreshes_a_desimone_championship_when_a_past_game_has_no_score(): void
     {
-        Carbon::setTestNow('2026-11-06 12:00:00');
+        Carbon::setTestNow('2026-11-10 12:00:00');
 
         try {
-            $championships = collect(['Championnat A', 'Championnat B'])
-                ->map(fn (string $name): Championship => Championship::create([
-                    'name' => $name,
-                    'season' => '2026-2027',
-                ]));
-
-            $firstMatchday = ChampionshipGamedays::create([
-                'championship_id' => $championships[0]->id,
+            $championship = Championship::create([
+                'name' => 'Championnat Desimone',
+                'season' => '2026-2027',
+                'source' => 'desimone',
+                'external_id' => '200000003063776',
+            ]);
+            $matchday = ChampionshipGamedays::create([
+                'championship_id' => $championship->id,
                 'number' => 1,
-                'label' => 'Journée 1',
                 'date' => '2026-11-07',
-                'source' => 'scorenco',
-                'external_id' => '14284752',
+                'source' => 'desimone',
+                'external_id' => '200000003063776:1',
             ]);
-            $secondMatchday = ChampionshipGamedays::create([
-                'championship_id' => $championships[1]->id,
-                'number' => 1,
-                'label' => 'Journée 1',
-                'date' => '2026-11-05',
-                'source' => 'scorenco',
-                'external_id' => '14284753',
+            $homeTeam = ChampionshipTeam::create([
+                'championship_id' => $championship->id,
+                'name' => 'Ancienne équipe locale',
             ]);
-            $matchdayWithNoGamesToday = ChampionshipGamedays::create([
-                'championship_id' => $championships[0]->id,
-                'number' => 2,
-                'date' => '2026-11-06',
-                'source' => 'scorenco',
-                'external_id' => '14284754',
-            ]);
-            ChampionshipGamedays::create([
-                'championship_id' => $championships[1]->id,
-                'number' => 2,
-                'date' => '2026-11-06',
-                'source' => 'scorenco',
-                'external_id' => 'date:2026-11-06',
-            ]);
-
-            $firstHomeTeam = ChampionshipTeam::create([
-                'championship_id' => $championships[0]->id,
-                'name' => 'Équipe locale A',
-            ]);
-            $firstAwayTeam = ChampionshipTeam::create([
-                'championship_id' => $championships[0]->id,
-                'name' => 'Équipe visiteuse A',
+            $awayTeam = ChampionshipTeam::create([
+                'championship_id' => $championship->id,
+                'name' => 'Ancienne équipe visiteuse',
             ]);
             ChampionshipGames::create([
-                'matchday_id' => $firstMatchday->id,
-                'home_team_id' => $firstHomeTeam->id,
-                'away_team_id' => $firstAwayTeam->id,
-                'scheduled_at' => '2026-11-06 19:00:00',
-                'status' => 'scheduled',
-                'source' => 'scorenco',
-                'external_id' => 'existing-match-1',
-            ]);
-            ChampionshipGames::create([
-                'matchday_id' => $firstMatchday->id,
-                'home_team_id' => $firstHomeTeam->id,
-                'away_team_id' => $firstAwayTeam->id,
-                'scheduled_at' => '2026-11-06 20:00:00',
-                'status' => 'scheduled',
-                'source' => 'scorenco',
-                'external_id' => 'existing-match-2',
-            ]);
-
-            $secondHomeTeam = ChampionshipTeam::create([
-                'championship_id' => $championships[1]->id,
-                'name' => 'Équipe locale B',
-            ]);
-            $secondAwayTeam = ChampionshipTeam::create([
-                'championship_id' => $championships[1]->id,
-                'name' => 'Équipe visiteuse B',
-            ]);
-            ChampionshipGames::create([
-                'matchday_id' => $secondMatchday->id,
-                'home_team_id' => $secondHomeTeam->id,
-                'away_team_id' => $secondAwayTeam->id,
-                'scheduled_at' => '2026-11-06 21:00:00',
-                'status' => 'scheduled',
-                'source' => 'scorenco',
-                'external_id' => 'existing-match-3',
-            ]);
-
-            ChampionshipGames::create([
-                'matchday_id' => $matchdayWithNoGamesToday->id,
-                'home_team_id' => $firstHomeTeam->id,
-                'away_team_id' => $firstAwayTeam->id,
-                'scheduled_at' => '2026-11-07 19:00:00',
-                'status' => 'scheduled',
-                'source' => 'scorenco',
-                'external_id' => 'existing-match-4',
-            ]);
-
-            Http::fake([
-                'graphql.scorenco.com/*' => Http::sequence()
-                    ->push(['data' => [
-                        'competitions_event_detail_by_round_day_id' => [$this->scorencoMatch(1)],
-                    ]])
-                    ->push(['data' => [
-                        'competitions_event_detail_by_round_day_id' => [$this->scorencoMatch(2)],
-                    ]]),
-            ]);
-
-            $importedGames = app(ChampionshipService::class)->refreshGamedays();
-
-            $this->assertSame(2, $importedGames);
-            $this->assertDatabaseCount('championship_gamedays', 4);
-            $this->assertDatabaseCount('championship_games', 6);
-            $this->assertDatabaseHas('championship_games', [
-                'source' => 'scorenco',
+                'matchday_id' => $matchday->id,
+                'home_team_id' => $homeTeam->id,
+                'away_team_id' => $awayTeam->id,
+                'scheduled_at' => '2026-11-07 12:00:00',
+                'source' => 'desimone',
                 'external_id' => 'match-1',
             ]);
+
+            $matches = [
+                $this->desimoneMatch('match-1', '1', '26', '50'),
+                $this->desimoneMatch('match-2', '1', '30', '40'),
+                $this->desimoneMatch('match-3', '2', '60', '55'),
+            ];
+            Http::fake([
+                'ffbb-api.desimone.fr/api/v1/poule/200000003063776' => Http::response([
+                    'id' => '200000003063776',
+                    'rencontres' => $matches,
+                ]),
+                'ffbb-api.desimone.fr/api/v1/poule/200000003063776/classement' => Http::response([
+                    'classement' => $this->desimoneRanking($matches),
+                ]),
+            ]);
+
+            $importedGames = app(ChampionshipService::class)->refresh($championship);
+
+            $this->assertSame(3, $importedGames);
             $this->assertDatabaseHas('championship_games', [
-                'source' => 'scorenco',
-                'external_id' => 'match-2',
+                'source' => 'desimone',
+                'external_id' => 'match-1',
+                'home_score' => 26,
+                'away_score' => 50,
+                'status' => 'completed',
+            ]);
+            $this->assertDatabaseHas('championship_games', [
+                'source' => 'desimone',
+                'external_id' => 'match-3',
+                'home_score' => 60,
+                'away_score' => 55,
             ]);
             Http::assertSentCount(2);
         } finally {
@@ -262,25 +287,49 @@ class ChampionshipServiceTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    private function scorencoMatch(int $id): array
+    private function desimoneMatch(string $id, string $round, string $homeScore, string $awayScore): array
     {
         return [
-            'id' => 'match-'.$id,
-            'status' => 'scheduled',
-            'date' => '2026-11-06',
-            'time' => '2026-11-06T19:00:00+01:00',
-            'teams' => [
-                [
-                    'role' => 'home',
-                    'team_id' => 100 + $id,
-                    'name_in_competition' => 'Équipe domicile '.$id,
-                ],
-                [
-                    'role' => 'away',
-                    'team_id' => 200 + $id,
-                    'name_in_competition' => 'Équipe extérieur '.$id,
-                ],
-            ],
+            'id' => $id,
+            'numeroJournee' => $round,
+            'date_rencontre' => '2026-11-07T12:00:00',
+            'resultatEquipe1' => $homeScore,
+            'resultatEquipe2' => $awayScore,
+            'joue' => $homeScore === 'None' ? 0 : 1,
+            'nomEquipe1' => 'Équipe domicile '.$id,
+            'nomEquipe2' => 'Équipe extérieure '.$id,
         ];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $matches
+     * @return array<int, array<string, mixed>>
+     */
+    private function desimoneRanking(array $matches): array
+    {
+        $ranking = [];
+        $teamIds = [];
+
+        foreach ($matches as $match) {
+            foreach ([1, 2] as $teamNumber) {
+                $name = $match['nomEquipe'.$teamNumber];
+                $teamIds[$name] ??= 'team-'.count($teamIds);
+            }
+        }
+
+        foreach ($teamIds as $name => $id) {
+            $ranking[] = [
+                'id_engagement' => ['id' => $id, 'nom' => $name],
+                'position' => count($ranking) + 1,
+                'points' => 5,
+                'match_joues' => 3,
+                'gagnes' => 2,
+                'perdus' => 1,
+                'paniers_marques' => 68,
+                'paniers_encaisses' => 65,
+            ];
+        }
+
+        return $ranking;
     }
 }

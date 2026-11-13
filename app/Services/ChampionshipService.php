@@ -5,9 +5,8 @@ namespace App\Services;
 use App\Models\Championship;
 use App\Models\ChampionshipGamedays;
 use App\Models\ChampionshipGames;
-use App\Models\ChampionshipStandingEntries;
-use App\Models\ChampionshipStandingSnapshots;
 use App\Models\ChampionshipTeam;
+use App\Models\ChampionshipStandingSnapshots;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use UnexpectedValueException;
@@ -15,313 +14,189 @@ use UnexpectedValueException;
 class ChampionshipService
 {
     /**
-     * Synchronise les journées Scorenco contenant des matchs prévus aujourd'hui.
+     * Synchronise les matchs et les équipes d'un championnat Desimone.
      */
-    public function refreshGamedays(): int
-    {
-        $gamedays = ChampionshipGames::query()
-            ->whereDate('scheduled_at', Carbon::today())
-            ->where('source', 'scorenco')
-            ->whereHas('matchday', fn ($query) => $query
-                ->where('source', 'scorenco')
-                ->whereNotNull('external_id'))
-            ->with('matchday')
-            ->orderBy('matchday_id')
-            ->orderBy('id')
-            ->get()
-            ->pluck('matchday')
-            ->unique('id');
-
-        $importedGames = 0;
-
-        foreach ($gamedays as $gameday) {
-            $roundEventId = filter_var($gameday->external_id, FILTER_VALIDATE_INT);
-
-            if ($roundEventId === false || $roundEventId < 1) {
-                continue;
-            }
-
-            $importedGames += $this->refreshGameday(
-                $roundEventId,
-                $gameday->championship_id,
-                $gameday->number,
-                $gameday->label,
-            );
+    public function refresh(Championship $championship): int
+    {      
+        if ($championship->source !== 'desimone') {
+            throw new UnexpectedValueException('Seuls les championnats Desimone peuvent être synchronisés avec cette méthode.');
         }
 
-        return $importedGames;
+        $pouleId = $championship->pool_external_id;
+        $competitionId = $championship->external_id;
+
+        if (! $pouleId) {
+            throw new UnexpectedValueException("Le championnat ne contient pas d'identifiant de poule Desimone.");
+        }
+
+        $desimone = app(DesimoneService::class);
+        $competition = $desimone->getCompetition($competitionId,$pouleId);
+        
+        $poule = collect($competition['phases'])
+            ->flatMap(fn ($phase) => $phase['poules'])
+            ->firstWhere('id', $pouleId);
+
+        $c = $this->refreshGames($championship, $pouleId, $poule['rencontres']);
+        $this->refreshStanding($championship, $desimone->getClassement($pouleId));
+
+        return $c;
     }
 
-    /**
-     * Synchronise une journée Scorenco et ses matchs dans le championnat.
-     */
-    public function refreshGameday(int $roundEventId, int $championshipId, ?int $daynumber, ?string $label): int
-    {
-
-        \Log::info("Refresh la journée $roundEventId du championnat $championshipId");
-        $sc = app(ScorencoService::class);
-
-        $matches = $sc->getRoundEvents($roundEventId);
-
-        if ($matches === []) {
-            \Log::info("Auncun match retourné par score'n'co");
-            return 0;
+    public function refreshAll() {
+        
+        $championships = Championship::all();
+        foreach($championships as $championship) {
+            refresh($championship);
         }
 
-        return DB::transaction(function () use ($roundEventId, $championshipId, $matches, $daynumber, $label): int {
-            $championship = Championship::query()->findOrFail($championshipId);
-            $source = 'scorenco';
-            $roundExternalId = (string) $roundEventId;
-            $normalizedMatches = [];
+    }
 
-            foreach ($matches as $match) {
-                if (! is_array($match) || ! isset($match['id'])) {
-                    throw new UnexpectedValueException('La réponse Scorenco contient un match sans identifiant.');
-                }
-
-                $teams = collect($match['teams'] ?? []);
-                $home = $teams->firstWhere('role', 'home');
-                $away = $teams->firstWhere('role', 'away');
-                if (! is_array($home) || ! is_array($away)) {
-                    throw new UnexpectedValueException('Un match Scorenco ne contient pas ses deux équipes.');
-                }
-
-                $date = $match['date'] ?? $match['time'] ?? null;
-                if (! $date) {
-                    throw new UnexpectedValueException('Un match Scorenco ne contient pas de date.');
-                }
-
-                $normalizedMatches[] = [
-                    'id' => (string) $match['id'],
-                    'date' => Carbon::parse($date)->toDateString(),
-                    'scheduled_at' => Carbon::parse($match['time'] ?? $date),
-                    'home' => $home,
-                    'away' => $away,
-                    'status' => $this->gameStatus((string) ($match['status'] ?? '')),
-                    'location' => data_get($match, 'place.name'),
-                ];
+    private function refreshGames(Championship $championship, string|int $pouleId, array $matches): int
+    {
+        foreach ($matches as $match) {
+            if (
+                ! is_array($match)
+                || ! isset(
+                    $match['numeroJournee'],
+                    $match['nomEquipe1'],
+                    $match['nomEquipe2'],
+                )
+            ) {
+                throw new UnexpectedValueException('Une rencontre Desimone ne contient pas les informations attendues.');
             }
 
-            $date = collect($normalizedMatches)->min('date');
-            $matchday = $championship->gamedays()
-                ->where('source', $source)
-                ->where('external_id', $roundExternalId)
-                ->first();
-
-            if (! $matchday) {
-                $matchday = $championship->gamedays()
-                    ->where('source', $source)
-                    ->whereDate('date', $date)
-                    ->first();
+            $roundNumber = filter_var($match['numeroJournee'], FILTER_VALIDATE_INT);
+            if ($roundNumber === false || $roundNumber < 1 || $roundNumber > 65535) {
+                throw new UnexpectedValueException('Une rencontre Desimone contient un numéro de journée invalide.');
             }
 
-            if (! $matchday) {
-                $number = $daynumber ? $daynumber : ((int) $championship->gamedays()->max('number')) + 1;
-                $matchday = new ChampionshipGamedays([
+            \Log::debug($match['numeroJournee']." $roundNumber");
+
+
+            $matchday = ChampionshipGamedays::updateOrCreate(
+                [
                     'championship_id' => $championship->id,
-                    'number' => $number,
-                    'label' => $label,
-                ]);
-            }
+                    'number' => $roundNumber,
+                ],
+                [
+                    'source' => 'desimone',
+                    'external_id' => $pouleId.':'.$roundNumber,
+                ]
+            );
 
-            $matchday->fill([
-                'date' => $date,
-                'source' => $source,
-                'external_id' => $roundExternalId,
-            ]);
-            $matchday->save();
-
-            foreach ($normalizedMatches as $match) {
-                $homeTeam = $this->syncChampionshipTeam($championship, $match['home']);
-                $awayTeam = $this->syncChampionshipTeam($championship, $match['away']);
-
-                ChampionshipGames::query()->updateOrCreate(
-                    ['source' => $source, 'external_id' => $match['id']],
-                    [
-                        'matchday_id' => $matchday->id,
-                        'home_team_id' => $homeTeam->id,
-                        'away_team_id' => $awayTeam->id,
-                        'scheduled_at' => $match['scheduled_at'],
-                        'home_score' => $this->score($match['home']),
-                        'away_score' => $this->score($match['away']),
-                        'status' => $match['status'],
-                        'location' => $match['location'],
-                    ]
-                );
-            }
-            $n=count($normalizedMatches);
-            \Log::info("$n matchs mis à jour ou ajouté");
-            if ($n>0) {
-                $this->refreshStanding($championship);
-            }
-            return $n;
-        });
-    }
-
-    /**
-     * Met à jour le championnat
-     */
-    private function refreshStanding(Championship $championship): ChampionshipStandingSnapshots
-    {
-            $teams = $championship->teams()->orderBy('id')->get();
-            $standings = [];
-
-            foreach ($teams as $team) {
-                $standings[$team->id] = [
-                    'championship_team_id' => $team->id,
-                    'played' => 0,
-                    'won' => 0,
-                    'lost' => 0,
-                    'points_for' => 0,
-                    'points_against' => 0,
-                    'points' => 0,
-                ];
-            }
-
-            $games = ChampionshipGames::query()
-                ->whereHas('matchday', fn ($query) => $query->where('championship_id', $championship->id))
-                ->where('status', 'completed')
-                ->whereNotNull('home_score')
-                ->whereNotNull('away_score')
-                ->with('matchday')
-                ->get();
-
-            foreach ($games as $game) {
-                if (! isset($standings[$game->home_team_id], $standings[$game->away_team_id])) {
+            $teams = [];
+            foreach ([1, 2] as $teamNumber) {
+                $teamName = trim((string) $match['nomEquipe'.$teamNumber]);
+                if ($teamName === '') {
                     continue;
                 }
 
-                $home = &$standings[$game->home_team_id];
-                $away = &$standings[$game->away_team_id];
-                $home['played']++;
-                $away['played']++;
-                $home['points_for'] += $game->home_score;
-                $home['points_against'] += $game->away_score;
-                $away['points_for'] += $game->away_score;
-                $away['points_against'] += $game->home_score;
-
-                if ($game->home_score > $game->away_score) {
-                    $home['won']++;
-                    $away['lost']++;
-                    $home['points'] += 2;
-                    $away['points']++;
-                } elseif ($game->away_score > $game->home_score) {
-                    $away['won']++;
-                    $home['lost']++;
-                    $away['points'] += 2;
-                    $home['points']++;
-                }
-
-                unset($home, $away);
+                $teams[$teamNumber] = ChampionshipTeam::firstOrCreate(
+                    [
+                        'championship_id' => $championship->id,
+                        'external_id' => $match['idEngagementEquipe'.$teamNumber]["id"],
+                    ],
+                    [
+                        'name' => $teamName,
+                        'source' => 'desimone',
+                    ]
+                );
             }
 
-            $ranking = collect($standings)
-                ->map(fn (array $standing): array => [
-                    ...$standing,
-                    'difference' => $standing['points_for'] - $standing['points_against'],
-                    'team_name' => $teams->firstWhere('id', $standing['championship_team_id'])->name,
-                ])
-                ->sortBy([
-                    ['points', 'desc'],
-                    ['difference', 'desc'],
-                    ['points_for', 'desc'],
-                    ['team_name', 'asc'],
-                    ['championship_team_id', 'asc'],
-                ])
-                ->values();
+            if(count($teams)<2) {
+                continue;
+            }
 
-            $latestMatchday = $games
-                ->sortBy(fn (ChampionshipGames $game): array => [
-                    $game->matchday?->number ?? 0,
-                    $game->scheduled_at?->timestamp ?? 0,
-                    $game->id,
-                ])
-                ->last()
-                ?->matchday;
+            $score1 = is_numeric($match['resultatEquipe1'] ?? null)
+                ? (int) $match['resultatEquipe1']
+                : null;
+            $score2 = is_numeric($match['resultatEquipe2'] ?? null)
+                ? (int) $match['resultatEquipe2']
+                : null;
+            $externalId = (string) ($match['id'] ?? $match['numero'] ?? '');
+            if ($externalId === '') {
+                throw new UnexpectedValueException('Une rencontre Desimone ne contient pas d’identifiant.');
+            }
 
-            $snapshot = ChampionshipStandingSnapshots::query()->updateOrCreate(
+            ChampionshipGames::updateOrCreate(
                 [
-                    'source' => 'calculated',
-                    'external_id' => 'championship-'.$championship->id,
+                    'source' => 'desimone',
+                    'external_id' => $externalId,
                 ],
                 [
+                    'matchday_id' => $matchday->id,
+                    'home_team_id' => $teams[1]->id,
+                    'away_team_id' => $teams[2]->id,
+                    'scheduled_at' => ! empty($match['date_rencontre'])
+                        ? Carbon::parse($match['date_rencontre'])
+                        : null,
+                    'home_score' => $score1,
+                    'away_score' => $score2,
+                    'status' => (int) ($match['joue'] ?? 0) === 1 && $score1 !== null && $score2 !== null
+                        ? 'completed'
+                        : 'scheduled',
+                ]
+            );
+        }
+
+        return count($matches);
+    }
+
+    public function refreshStanding(
+        Championship $championship,
+        array $classement,
+    ): ChampionshipStandingSnapshots
+    {
+        $entries = [];
+
+        foreach ($classement as $row) {
+            if (! is_array($row) || ! is_array($row['id_engagement'] ?? null) || empty($row['id_engagement']['nom'])) {
+                continue;
+            }
+
+            $team = ChampionshipTeam::where([
                     'championship_id' => $championship->id,
-                    'matchday_id' => $latestMatchday?->id,
+                    'external_id' => $row['id_engagement']['id'],
+                ])->firstOrFail();
+
+            $entries[] = [
+                'championship_team_id' => $team->id,
+                'rank' => (int) ($row['position'] ?? 0),
+                'played' => (int) ($row['match_joues'] ?? 0),
+                'won' => (int) ($row['gagnes'] ?? 0),
+                'lost' => (int) ($row['perdus'] ?? 0),
+                'points_for' => (int) ($row['paniers_marques'] ?? 0),
+                'points_against' => (int) ($row['paniers_encaisses'] ?? 0),
+                'points' => (int) ($row['points'] ?? 0),
+                'penalty_points' => (int) ($row['penalites_arbitrage'] ?? 0)
+                    + (int) ($row['penalites_entraineur'] ?? 0)
+                    + (int) ($row['penalites_diverses'] ?? 0),
+            ];
+        }
+
+        $externalId = (string) ($championship->pool_external_id ?: $championship->external_id);
+        $matchday = ChampionshipGamedays::query()
+            ->where('championship_id', $championship->id)
+            ->whereHas('games', fn ($query) => $query->where('status', 'completed'))
+            ->orderByDesc('number')
+            ->first();
+
+        return DB::transaction(function () use ($championship, $entries, $externalId, $matchday) {
+            $snapshot = ChampionshipStandingSnapshots::updateOrCreate(
+                [
+                    'championship_id' => $championship->id,
+                    'source' => 'desimone',
+                    'external_id' => $externalId,
+                ],
+                [
+                    'matchday_id' => $matchday?->id,
                     'captured_at' => now(),
                 ]
             );
             $snapshot->entries()->delete();
+            $snapshot->entries()->createMany($entries);
 
-            foreach ($ranking as $index => $standing) {
-                ChampionshipStandingEntries::create([
-                    'standing_snapshot_id' => $snapshot->id,
-                    'championship_team_id' => $standing['championship_team_id'],
-                    'rank' => $index + 1,
-                    'played' => $standing['played'],
-                    'won' => $standing['won'],
-                    'lost' => $standing['lost'],
-                    'points_for' => $standing['points_for'],
-                    'points_against' => $standing['points_against'],
-                    'points' => $standing['points'],
-                    'penalty_points' => 0,
-                ]);
-            }
-
-            return $snapshot;
-    }
-
-    /**
-     * @param  array<string, mixed>  $scorencoTeam
-     */
-    private function syncChampionshipTeam(Championship $championship, array $scorencoTeam): ChampionshipTeam
-    {
-        $externalId = $scorencoTeam['team_id']
-            ?? $scorencoTeam['id']
-            ?? null;
-        $name = $scorencoTeam['name_in_competition']
-            ?? $scorencoTeam['name_in_club']
-            ?? null;
-
-        if (! $externalId || ! $name) {
-            throw new UnexpectedValueException('Une équipe Scorenco ne contient pas son identifiant ou son nom.');
-        }
-
-        return ChampionshipTeam::query()->updateOrCreate(
-            [
-                'championship_id' => $championship->id,
-                'source' => 'scorenco',
-                'external_id' => (string) $externalId,
-            ],
-            [
-                'name' => $name,
-            ]
-        );
-    }
-
-    /**
-     * @param  array<string, mixed>  $team
-     */
-    private function score(array $team): ?int
-    {
-        $score = $team['score'] ?? null;
-
-        if ($score === null || $score === '') {
-            return null;
-        }
-
-        if (! is_numeric($score) || (int) $score < 0 || (int) $score > 65535) {
-            throw new UnexpectedValueException('Un score Scorenco est invalide.');
-        }
-
-        return (int) $score;
-    }
-
-    private function gameStatus(string $status): string
-    {
-        return match (strtolower($status)) {
-            'finish', 'finished', 'complete', 'completed' => 'completed',
-            'cancel', 'cancelled', 'canceled' => 'cancelled',
-            default => 'scheduled',
-        };
+            return $snapshot->load('entries');
+        });
     }
 }

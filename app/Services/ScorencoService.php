@@ -2,12 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\Championship;
-use App\Models\ChampionshipGamedays;
-use App\Models\ChampionshipGames;
-use App\Models\ChampionshipTeam;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use UnexpectedValueException;
 

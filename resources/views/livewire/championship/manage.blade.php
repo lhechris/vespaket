@@ -74,16 +74,47 @@
             <x-input-error class="mt-2" :messages="$errors->get('pool')" />
         </div>
         <div>
-            <x-input-label for="pool" value="Identifiant score'n'co de l'équipe" />
-            <x-text-input
-                wire:model="scorencoteamid"
-                id="scorencoteamid"
-                name="scorencoteamid"
-                type="text"
-                class="mt-1 block w-full"
-            />
-            <x-input-error class="mt-2" :messages="$errors->get('scorencoteamid')" />
+            <x-input-label for="source" value="Source des matchs" />
+            <select wire:model.live="source" id="source" name="source" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                <option value="scorenco">Scorenco</option>
+                <option value="desimone">FFBB / Desimone</option>
+            </select>
+            <x-input-error class="mt-2" :messages="$errors->get('source')" />
         </div>
+
+        @if($source === 'scorenco')
+            <div>
+                <x-input-label for="scorencoteamid" value="Identifiant Scorenco de l'équipe" />
+                <x-text-input
+                    wire:model="scorencoteamid"
+                    id="scorencoteamid"
+                    name="scorencoteamid"
+                    type="text"
+                    class="mt-1 block w-full"
+                />
+                <x-input-error class="mt-2" :messages="$errors->get('scorencoteamid')" />
+            </div>
+        @elseif($source === 'desimone')
+            <div>
+                <x-input-label for="desimoneSelection" value="Championnat du club (FFBB / Desimone)" />
+                <select
+                    wire:model.live="desimoneSelection"
+                    id="desimoneSelection"
+                    name="desimoneSelection"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                    required
+                >
+                    <option value="">Choisir un championnat</option>
+                    @foreach($desimoneTeams as $clubTeam)
+                        <option value="{{ $clubTeam['poule_id'] }}">
+                            {{ $clubTeam['competition'] }}
+                        </option>
+                    @endforeach
+                </select>
+                <p class="mt-1 text-sm text-gray-600">Liste chargée pour le club Desimone 12374.</p>
+                <x-input-error class="mt-2" :messages="$errors->get('desimoneSelection')" />
+            </div>
+        @endif
 
 
         <div class="flex items-center gap-3">

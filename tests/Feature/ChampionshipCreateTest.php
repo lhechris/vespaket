@@ -7,6 +7,7 @@ use App\Models\Championship;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -14,7 +15,7 @@ class ChampionshipCreateTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_an_admin_can_create_a_manual_championship_for_a_team(): void
+    public function test_an_admin_can_create_a_scorenco_championship_for_a_team(): void
     {
         [, $team] = $this->createOwnedTeam();
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
@@ -40,7 +41,7 @@ class ChampionshipCreateTest extends TestCase
             'category' => 'U13',
             'division' => 'Division 2',
             'pool' => 'Poule A',
-            'source' => 'manual',
+            'source' => 'scorenco',
             'status' => 'active',
         ]);
         $this->assertDatabaseHas('championship_teams', [
@@ -49,6 +50,62 @@ class ChampionshipCreateTest extends TestCase
             'name' => $team->name,
             'source' => 'scorenco',
             'external_id' => '98765',
+        ]);
+    }
+
+    public function test_an_admin_can_create_a_desimone_championship_for_a_team(): void
+    {
+        [, $team] = $this->createOwnedTeam();
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+
+        Http::fake([
+            'ffbb-api.desimone.fr/api/v1/club/12374/teams' => Http::response([
+                'teams' => [[
+                    'engagement_id' => '200000005357987',
+                    'team_number' => '2',
+                    'competition' => 'Départementale féminine U15 - Division 3',
+                    'competition_id' => '200000002898776',
+                    'poule_id' => '200000003063776',
+                ]],
+            ]),
+            'ffbb-api.desimone.fr/api/v1/competition/200000002898776' => Http::response([
+                'id' => '200000002898776',
+                'nom' => 'Départementale féminine U15 - Division 3',
+                'code' => 'DFU15-3',
+                'categorie' => ['code' => 'U15'],
+                'phases' => [[
+                    'poules' => [[
+                        'id' => '200000003063776',
+                        'nom' => 'Poule C',
+                    ]],
+                ]],
+            ]),
+        ]);
+
+        Livewire::actingAs($admin)
+            ->test(Manage::class, ['team' => $team])
+            ->set('source', 'desimone')
+            ->assertSet('desimoneTeams.0.engagement_id', '200000005357987')
+            ->set('desimoneSelection', '200000005357987')
+            ->assertSet('name', 'Départementale féminine U15 - Division 3')
+            ->assertSet('category', 'U15')
+            ->assertSet('division', 'DFU15-3')
+            ->assertSet('pool', 'Poule C')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $championship = Championship::query()->sole();
+
+        $this->assertDatabaseHas('championships', [
+            'id' => $championship->id,
+            'source' => 'desimone',
+            'external_id' => '200000003063776',
+        ]);
+        $this->assertDatabaseHas('championship_teams', [
+            'championship_id' => $championship->id,
+            'team_id' => $team->id,
+            'source' => 'desimone',
+            'external_id' => '200000003063776',
         ]);
     }
 

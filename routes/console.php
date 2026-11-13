@@ -11,6 +11,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::call(function() {
+    \Log::info("Mise à jour des championnats");
     $srv = app(ChampionshipService::class);
-    $srv->refreshGamedays();    
-})->hourly();
+    $srv->refreshAll();    
+})->twiceDaily(10, 18);

@@ -39,7 +39,7 @@
                     <select wire:model="newMember.type" id="new-member-type" class="mt-1 w-full rounded-md border-gray-700  bg-yellow-200 focus:border-yellow-500 focus:ring-yellow-500">
                         <option value="player">{{ __('vespaket.player') }}</option>
                         <option value="coach">{{ __('vespaket.coach') }}</option>
-                        <option value="staff">{{ __('vespaket.staff') }}</option>
+                        <option value="otm">OTM</option>
                     </select>
                     <x-input-error class="mt-1" :messages="$errors->get('newMember.type')" />
                 </div>
@@ -129,7 +129,7 @@
                                             <select wire:model="members.{{ $index }}.type" id="member-type-{{ $member['id'] }}" class="mt-1 w-full rounded-md border-gray-700 bg-yellow-200 focus:border-yellow-500 focus:ring-yellow-500">
                                                 <option value="player">{{ __('vespaket.player') }}</option>
                                                 <option value="coach">{{ __('vespaket.coach') }}</option>
-                                                <option value="staff">{{ __('vespaket.staff') }}</option>
+                                                <option value="otm">OTM</option>
                                             </select>
                                         </div>
                                         <div>

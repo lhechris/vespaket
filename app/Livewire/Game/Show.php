@@ -24,7 +24,9 @@ class Show extends Component
     public function loadMembers()
     {
         $this->memberIds = auth()->user()->members()->pluck('members.id');
-        $this->players = $this->game->members()->get();
+        $this->players = $this->game->members()
+                                ->where('type',\App\Models\Member::TYPE_PLAYER)
+                                ->get();
 
         $this->members = $this->game->members()
             ->whereIn('members.id', $this->memberIds)

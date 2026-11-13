@@ -37,7 +37,7 @@
             </div>
             <div class="text-gray-600 flex gap-2" >
                 <p>{{ $team->players()->count() }} {{ __('vespaket.players') }}</p>
-                <p>{{ $team->staffs()->count() }} {{ __('vespaket.staffs') }}</p>
+                <p>{{ $team->otms()->count() }} OTM</p>
                 <p>{{ $team->coaches()->count() }} {{ __('vespaket.coaches') }}</p>
                 <p>{{ $team->games()->count() }} {{ __('vespaket.matchs') }}</p>
                 <p>{{ $team->trainings()->count() }} {{ __('vespaket.trainings') }}</p>

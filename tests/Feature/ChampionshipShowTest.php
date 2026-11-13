@@ -113,27 +113,30 @@ class ChampionshipShowTest extends TestCase
             'team_id' => $team->id,
             'name' => $team->name,
         ]);
-        $firstMatchday = ChampionshipGamedays::create([
-            'championship_id' => $championship->id,
-            'number' => 1,
-        ]);
         $secondMatchday = ChampionshipGamedays::create([
             'championship_id' => $championship->id,
             'number' => 2,
+        ]);
+        $firstMatchday = ChampionshipGamedays::create([
+            'championship_id' => $championship->id,
+            'number' => 1,
         ]);
 
         Livewire::actingAs($user)
             ->test(Show::class, ['team' => $team])
             ->assertSet('selectedMatchdayId', $secondMatchday->id)
+            ->assertSeeHtml('value="'.$secondMatchday->id.'" selected')
             ->assertSee('Journée précédente')
             ->assertSee('Journée suivante')
             ->assertSee('Journée 1')
             ->call('previousMatchday')
             ->assertSet('selectedMatchdayId', $firstMatchday->id)
+            ->assertSeeHtml('value="'.$firstMatchday->id.'" selected')
             ->call('previousMatchday')
             ->assertSet('selectedMatchdayId', $firstMatchday->id)
             ->call('nextMatchday')
             ->assertSet('selectedMatchdayId', $secondMatchday->id)
+            ->assertSeeHtml('value="'.$secondMatchday->id.'" selected')
             ->call('nextMatchday')
             ->assertSet('selectedMatchdayId', $secondMatchday->id)
             ->call('selectMatchday', $firstMatchday->id)
