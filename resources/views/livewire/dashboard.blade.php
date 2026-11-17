@@ -115,18 +115,18 @@
         <x-cards-scroll nextElementId="game-{{$member->id}}-{{$member->nextGameId}}" >
 
             @forelse($member->combined as $game)
-                @if($game instanceof \App\Models\Event)
+                @if($game instanceof \App\Models\Event && (!$member->isotm()))                    
                 <livewire:event.card 
                         :event="$game" :member="$member"
                         :key="'event-'.$member->id.'-'.$game->id"
                 ></livewire:event.card>                
-                @elseif($game instanceof \App\Models\Game)
-                <livewire:game.card 
-                        :game="$game" 
-                        :member="$member"
-                        :key="'event-'.$member->id.'-'.$game->id"
-                    ></livewire:game.card>                
-                @endif 
+                @elseif($game instanceof \App\Models\Game && (!$member->isotm() || $game->isDomicile()))
+                    <livewire:game.card 
+                            :game="$game" 
+                            :member="$member"
+                            :key="'event-'.$member->id.'-'.$game->id"
+                        ></livewire:game.card>
+                @endif
             @empty
                 <p class="text-gray-500">{{ __('vespaket.no_match') }}</p>
             @endforelse

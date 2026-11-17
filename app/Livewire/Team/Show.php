@@ -9,6 +9,7 @@ class Show extends Component
 {
     public Team $team;
     public string $activeTab = 'games';
+    public string $activeStatTab = 'selection';
 
     public function mount(): void
     {
@@ -19,6 +20,10 @@ class Show extends Component
     public function setTab(string $tab)
     {
         $this->activeTab = $tab;
+    }
+    public function setStatTab(string $tab)
+    {
+        $this->activeStatTab = $tab;
     }
 
     public function render()

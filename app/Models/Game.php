@@ -43,4 +43,8 @@ class Game extends Model
     public function formatdate() {
         return  \Carbon\Carbon::parse($this->date)->translatedFormat('d F Y à H:i');
     }
+
+    public function isDomicile() {
+        return str_starts_with(strtolower($this->titre),'aslb');
+    }
 }

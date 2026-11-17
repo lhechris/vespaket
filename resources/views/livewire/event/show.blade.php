@@ -18,6 +18,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         @foreach ($members as $member)
+        @if($member->isplayer())
             <div class="bg-slate-800 p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4 text-yellow-300">
                 <div class="flex items-center justify-between gap-4">
                     <div>
@@ -40,6 +41,7 @@
                     </button>
                 </div>
             </div>
+        @endif
         @endforeach
     </div>
 
@@ -54,6 +56,8 @@
             </thead>
             <tbody>
                 @foreach($players as $player)
+                @if($player->isplayer())
+
                     <tr class="odd:bg-gray-700 even:bg-gray-800 border-b border-default">
                         <td class="px-2 sm:px-6 py-4">{{ $player->prenom }}</td>
                         <td>
@@ -66,6 +70,7 @@
                             @endif
                         </td>
                     </tr>
+                @endif
                 @endforeach
             </tbody>
         </table>

@@ -65,8 +65,8 @@
             </button>
             <button wire:click="setTab('selections')"
                     class="px-2 sm:px-4 py-2 rounded-full text-sm font-semibold {{ $activeTab === 'selections' ? 'bg-gray-500 text-white' : 'bg-transparent text-gray-700 hover:bg-gray-100' }}">
-                <img src="{{ asset('images/selection.png') }}" alt="{{ __('vespaket.selections') }}"/>
-                <p class="text-xs">{{ __('vespaket.selections') }}</p>
+                <img src="{{ asset('images/graphique.png') }}" alt="{{ __('vespaket.statistics') }}"/>
+                <p class="text-xs">{{ __('vespaket.statistics') }}</p>
             </button>
             <button wire:click="setTab('events')"
                     class="px-2 sm:px-4 py-2 rounded-full text-sm font-semibold {{ $activeTab === 'events' ? 'bg-gray-500 text-white' : 'bg-transparent text-gray-700 hover:bg-gray-100' }}">
@@ -98,7 +98,19 @@
 
     <!-- SELECTIONS -->
     @if($activeTab === 'selections')
-        <livewire:team.selections :team="$team" />
+        <div>
+            <div class="p-2">
+                <x-button :active="$activeStatTab === 'selection'" wire:click="setStatTab('selection')">Sélections</x-button>
+                <x-button :active="$activeStatTab === 'stat'" wire:click="setStatTab('stat')">Stats</x-button>
+            </div>
+        
+        @if($activeStatTab == 'selection')
+            <livewire:team.selections :team="$team" />
+        @endif
+        @if($activeStatTab == 'stat')
+            <livewire:team.stats :team="$team" />
+        @endif
+        </div>
     @endif
 
     <!-- PARAMETERS -->

@@ -51,7 +51,7 @@
         <table class="w-full text-sm text-left rtl:text-right text-body text-yellow-400">
             <thead class="bg-black border-b border-default">
                 <tr>
-                    <th scope="col" class="px-2 py-3 font-medium">{{ __('vespaket.first_name') }}</th>
+                    <th scope="col" class="px-2 py-3 font-medium">{{ __('Name') }}</th>
                     <th scope="col" class="px-2 py-3 font-medium">{{ __('vespaket.licence') }}</th>
                     <th scope="col" class="px-2 py-3 font-medium">{{ __('vespaket.number') }}</th>
                     <th scope="col" class="px-2 py-3 font-medium">{{ __('vespaket.matchs') }}</th>
@@ -76,7 +76,7 @@
                             @error('editingMember.numero') <span class="text-red-400">{{ $message }}</span> @enderror
                         </td>
                     @else
-                        <td class="px-2 py-4">{{ $player->prenom }}</td>
+                        <td class="px-2 py-4">{{ $player->prenom }} {{ $player->name }} </td>
                         <td class="px-2 py-4">{{ $player->licence ?? '.....' }}</td>
                         <td class="px-2 py-4">{{ $player->numero }}</td>
                     @endif

@@ -121,6 +121,7 @@
                 </thead>
                 <tbody>
                     @foreach($members as $member)
+                    @if($member->isplayer())
                     <tr class="odd:bg-gray-700 even:bg-gray-800 border-b border-default">
                         <td class="px-2 sm:px-6 py-4">{{ $member->prenom }}</td>
                         <td class="px-2 sm:px-6 py-4 text-black">
@@ -149,6 +150,7 @@
                             @endif
                         </td>
                     </tr>
+                    @endif
                     @endforeach
                 </tbody>
             </table>
@@ -187,8 +189,50 @@
                     @endforeach
                 </tbody>
             </table>
-        </div>
+        </div>        
     </div>
+
+    @if($isDomicile)
+    <div class="flex flex-col lg:flex-row gap-4">
+        <div>
+            <h2>{{ __('vespaket.otm') }}</h2>
+            <table class="w-full text-sm text-left rtl:text-right text-body text-yellow-400 max-w-lg">
+                <thead class="bg-black border-b border-default">
+                    <tr>
+                        <th scope="col" class="px-2 sm:px-6 py-3 font-bold">{{ __('vespaket.first_name') }}</th>
+                        <th scope="col" class="px-2 sm:px-6 py-3 font-bold">{{ __('vespaket.availability') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($members as $member)
+                    @if($member->isotm())
+                    <tr class="odd:bg-gray-700 even:bg-gray-800 border-b border-default">
+                        <td class="px-2 sm:px-6 py-4">{{ $member->prenom }}</td>
+                        <td class="px-2 sm:px-6 py-4 text-black">
+                            <button wire:click="setAvailability({{ $member->id }}, 'yes')"
+                                class="px-1 py-1 rounded {{ $member->pivot->availability === 'yes' ? 'bg-green-500 text-white' : 'bg-gray-200' }}">
+                                ✔️​
+                            </button>
+
+                            <button wire:click="setAvailability({{ $member->id }}, 'no')"
+                                class="px-1 py-1 rounded {{ $member->pivot->availability === 'no' ? 'bg-red-500 text-white' : 'bg-gray-200' }}">
+                            ❌​
+                            </button>
+
+                            <button wire:click="setAvailability({{ $member->id }}, 'maybe')"
+                                class="px-1 py-1 rounded {{ $member->pivot->availability === 'maybe' ? 'bg-yellow-400' : 'bg-gray-200' }}">
+                                ❓
+                            </button>
+                        </td>
+                    </tr>
+                    @endif
+                    @endforeach
+                </tbody>
+            </table>
+        </div>        
+    </div>
+    @endif
+
 
     <!-- Notifications -->
     <div>
@@ -217,11 +261,10 @@
     </script>
     @endscript    
 
-
+    @if($hasStats)
     <h2>{{ __('vespaket.statistics') }}</h2>
-        @foreach($members as $member)
-        <x-player-stats :player="$member" :options="$options" />
-        @endforeach
+    <x-player-stats :players="$members" :options="$options" />
+    @endif
 </div>
 
 

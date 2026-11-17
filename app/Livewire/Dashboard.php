@@ -35,7 +35,7 @@ class Dashboard extends Component
             $this->members = auth()->user()->members()
                 ->with('games')
                 ->with('events')
-                ->where('type',Member::TYPE_PLAYER)
+                ->whereIn('type',[Member::TYPE_PLAYER,Member::TYPE_OTM])
                 ->get();
             if (count($this->members)>0) {
                 $this->activeTab = $this->members[0]->prenom;

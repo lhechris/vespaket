@@ -28,7 +28,7 @@
         <div class="flex justify-between border p-2 mb-2">
 
             <span>
-                {{ $member->prenom }} ({{ $member->type }})
+                {{ $member->prenom }} {{ $member->name }} ({{ $member->type }})
             </span>
 
             <div class="space-x-2">
@@ -61,7 +61,7 @@
         <tbody>
             @foreach($members as $member)
             <tr class="odd:bg-gray-700 even:bg-gray-800 border-b border-default">
-                <td class="px-6 py-4">{{ $member->prenom }}</td>
+                <td class="px-6 py-4">{{ $member->prenom }} {{ $member->name }} </td>
                 <td class="px-6 py-4">{{ $member->type }}</td>
                 <td class="px-6 py-4">
                     <button wire:click="removeMember({{ $member->id }})" class="text-red-600">

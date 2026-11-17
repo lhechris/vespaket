@@ -46,7 +46,7 @@ class ChampionshipService
         
         $championships = Championship::all();
         foreach($championships as $championship) {
-            refresh($championship);
+            $this->refresh($championship);
         }
 
     }
@@ -69,9 +69,6 @@ class ChampionshipService
             if ($roundNumber === false || $roundNumber < 1 || $roundNumber > 65535) {
                 throw new UnexpectedValueException('Une rencontre Desimone contient un numéro de journée invalide.');
             }
-
-            \Log::debug($match['numeroJournee']." $roundNumber");
-
 
             $matchday = ChampionshipGamedays::updateOrCreate(
                 [

@@ -45,7 +45,11 @@ class Member extends Model
 
     public function trainings()
     {
-        return $this->belongsToMany(Training::class);
+        return $this->belongsToMany(Training::class)
+            ->withPivot('present')
+            ->withTimestamps()
+            ->orderBy('date');
+
     }
 
 

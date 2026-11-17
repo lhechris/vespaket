@@ -70,6 +70,7 @@
                 </thead>
                 <tbody>
                     @foreach($members as $member)
+                    @if($member->isplayer())
                     <tr class="odd:bg-gray-700 even:bg-gray-800 border-b border-default">
                         <td class="px-2 sm:px-6 py-4">{{ $member->prenom }}</td>
                         <td class="px-2 sm:px-6 py-4 text-black">
@@ -89,6 +90,7 @@
                             </button>
                         </td>
                     </tr>
+                    @endif
                     @endforeach
                 </tbody>
             </table>

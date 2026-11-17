@@ -363,7 +363,18 @@ class Edit extends Component
 
     public function render()
     {
+        $isDomicile = $this->game->isDomicile();
+        $hasStats = false;
+        foreach($this->options as $option) {
+            if ($option->isDisplayStat()) {
+                $hasStats = true;
+                break;
+            }
+        }
+
         return view('livewire.game.edit', [
+            'isDomicile' => $isDomicile,
+            'hasStats' => $hasStats,
         ])->layout('layouts.app');
     }
 }

@@ -110,7 +110,7 @@ class Show extends Component
 
     public function refresh(ChampionshipService $srv, $id)
     {
-        $championship = Championship::query()->findOrFail($id);
+        $championship = ChampionshipModel::query()->findOrFail($id);
         $srv->refresh($championship);
     }
 

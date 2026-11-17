@@ -5,10 +5,13 @@ namespace Tests\Feature;
 use App\Livewire\Team\Games;
 use App\Livewire\Team\Members;
 use App\Livewire\Team\Parameters;
+use App\Livewire\Team\Stats;
 use App\Models\Game;
+use App\Models\GameMemberOption;
 use App\Models\GameOption;
 use App\Models\Member;
 use App\Models\Team;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -16,6 +19,77 @@ use Tests\TestCase;
 class TeamSubcomponentsTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_stats_lists_players_and_aggregates_game_options(): void
+    {
+        $owner = User::factory()->create();
+        $this->actingAs($owner);
+
+        $team = Team::factory()->create();
+        $team->owners()->attach($owner->id);
+        $player = Member::factory()->create([
+            'prenom' => 'Alice',
+            'name' => 'Example',
+        ]);
+        $team->members()->attach($player->id);
+
+        $recentGame = Game::factory()->create([
+            'team_id' => $team->id,
+            'date' => now()->addDay(),
+        ]);
+        $earlierGame = Game::factory()->create([
+            'team_id' => $team->id,
+            'date' => now(),
+        ]);
+        $oldestGame = Game::factory()->create([
+            'team_id' => $team->id,
+            'date' => now()->subDay(),
+        ]);
+        $points = GameOption::create([
+            'team_id' => $team->id,
+            'name' => 'Points',
+            'type' => GameOption::TYPE_NUM,
+            'display' => GameOption::DISP_STAT,
+            'order' => 1,
+        ]);
+        $note = GameOption::create([
+            'team_id' => $team->id,
+            'name' => 'Note',
+            'type' => GameOption::TYPE_TEXT,
+            'display' => GameOption::DISP_STAT,
+            'order' => 2,
+        ]);
+        $checkIns = GameOption::create([
+            'team_id' => $team->id,
+            'name' => 'Présence',
+            'type' => GameOption::TYPE_CHECKBOX,
+            'display' => GameOption::DISP_STAT,
+            'order' => 3,
+        ]);
+
+        foreach ([
+            [$recentGame, $points, '7'],
+            [$earlierGame, $points, '4'],
+            [$recentGame, $note, 'Récent'],
+            [$earlierGame, $note, 'Ancien'],
+            [$recentGame, $checkIns, 'yes'],
+            [$earlierGame, $checkIns, 'no'],
+            [$oldestGame, $checkIns, 'true'],
+        ] as [$game, $option, $value]) {
+            GameMemberOption::create([
+                'game_id' => $game->id,
+                'member_id' => $player->id,
+                'game_option_id' => $option->id,
+                'value' => $value,
+            ]);
+        }
+
+        Livewire::test(Stats::class, ['team' => $team])
+            ->assertSee('Points')
+            ->assertSee('Note')
+            ->assertSee('Présence')
+            ->assertSeeInOrder(['Alice Example', '11', 'Ancien, Récent', '2']);
+    }
 
     public function test_members_lists_players_and_saves_member_edits(): void
     {
