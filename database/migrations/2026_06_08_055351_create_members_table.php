@@ -13,11 +13,8 @@ return new class extends Migration
     {
         Schema::create('members', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('prenom');
             $table->string('type'); // player, coach, otm
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('licence')->nullable();
+            $table->foreignId('team_id')->nullable()->constrained()->nullOnDelete();
             $table->integer('numero')->nullable();
             $table->timestamps();
         });

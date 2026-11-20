@@ -3,8 +3,10 @@
 namespace App\Livewire\Team;
 
 use Livewire\Component;
-use App\Models\Team;
+use App\Models\Licensee;
 use App\Models\Member;
+use App\Models\Team;
+use Illuminate\Validation\ValidationException;
 
 class ManageMembers extends Component
 {
@@ -20,18 +22,51 @@ class ManageMembers extends Component
 
     public function updatedSearch()
     {
-        $this->results = Member::where('prenom', 'like', "%{$this->search}%")
+        $search = trim($this->search);
+
+        $this->results = Licensee::query()
+            ->with('members.team')
+            ->where(function ($query) use ($search): void {
+                $query->where('firstname', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('licence', 'like', "%{$search}%");
+            })
             ->limit(10)
             ->get();
     }
 
-    public function addMember($memberId)
+    public function addLicenseeMember(int $licenseeId, string $role): void
     {
         $this->authorize('TeamAccess', $this->team);
 
-        $this->team->members()->syncWithoutDetaching([
-            $memberId
-        ]);
+        if (! in_array($role, [Member::TYPE_PLAYER, Member::TYPE_COACH, Member::TYPE_OTM, Member::TYPE_SUB], true)) {
+            throw ValidationException::withMessages([
+                'role' => 'Le rôle sélectionné est invalide.',
+            ]);
+        }
+
+        $licensee = Licensee::findOrFail($licenseeId);
+        $member = $licensee->members()
+                        ->where('team_id', $this->team->id)
+                        ->where('type', $role)
+                        ->first();
+
+        if (! $member) {
+            $member = $licensee->members()->create([
+                'numero' => '',
+                'type' => $role,
+                'team_id' => $this->team->id
+            ]);
+
+            $this->addMember($member->id);
+        }
+        
+        $this->updatedSearch();
+    }
+
+    private function addMember($memberId)
+    {
+        $this->authorize('TeamAccess', $this->team);
 
         $now = \Carbon\Carbon::now();
 
@@ -40,7 +75,6 @@ class ManageMembers extends Component
                 $alreadyAttached = $game->members()->whereKey($memberId)->exists();
 
                 if (! $alreadyAttached) {
-                    \Log::info("attach $memberId dans le game $game->id");
                     $game->members()->attach($memberId);
                 }
             }
@@ -51,7 +85,6 @@ class ManageMembers extends Component
                 $alreadyAttached = $event->members()->whereKey($memberId)->exists();
 
                 if (! $alreadyAttached) {
-                    \Log::info("attach $memberId dans l'event $event->id");
                     $event->members()->attach($memberId);
                 }
             }
@@ -62,8 +95,8 @@ class ManageMembers extends Component
     {
         $this->authorize('TeamAccess', $this->team);
 
-        $this->team->members()->detach($memberId);
-        
+        $member = Member::find($memberId);
+
         $now = \Carbon\Carbon::now();
 
         //Detach des games uniquement pour les future, on garde les anciens
@@ -81,6 +114,7 @@ class ManageMembers extends Component
             }
         }        
 
+        $member->delete();
 
     }
 
@@ -89,7 +123,7 @@ class ManageMembers extends Component
         $this->authorize('TeamAccess', $this->team);
         
         return view('livewire.team.manage-members', [
-            'members' => $this->team->members
+            'members' => $this->team->members()->with('licensee')->get()->sortby([["type"],["licensee.firstname"]]),
         ])->layout('layouts.app');
     }
 }

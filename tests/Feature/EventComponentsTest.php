@@ -22,9 +22,8 @@ class EventComponentsTest extends TestCase
     {
         $coach = User::factory()->create(['role' => User::ROLE_COACH]);
         $team = Team::factory()->create();
-        $player = Member::factory()->create(['type' => Member::TYPE_PLAYER]);
-        $coachMember = Member::factory()->create(['type' => Member::TYPE_COACH]);
-        $team->members()->attach([$player->id, $coachMember->id]);
+        $player = Member::factory()->create(['type' => Member::TYPE_PLAYER,'team_id' => $team->id]);
+        $coachMember = Member::factory()->create(['type' => Member::TYPE_COACH,'team_id' => $team->id]);
 
         Livewire::actingAs($coach)
             ->test(Create::class, ['team' => $team])
@@ -227,7 +226,7 @@ class EventComponentsTest extends TestCase
         [$event, $child] = $this->createEventMember();
         $otherMember = Member::factory()->create();
         $event->members()->attach($otherMember->id);
-        $parent->members()->attach($child->id, ['relation' => 'parent']);
+        $parent->licensees()->attach($child->licensee);
 
         Livewire::actingAs($parent)
             ->test(Card::class, ['event' => $event, 'member' => $child])
@@ -273,13 +272,14 @@ class EventComponentsTest extends TestCase
     {
         $parent = User::factory()->create(['role' => User::ROLE_PARENT]);
         [$event, $child] = $this->createEventMember();
-        $otherMember = Member::factory()->create(['prenom' => 'Autre joueur']);
+        $otherMember = Member::factory()->create();
+        $otherMember->licensee->update(['firstname' => 'Autre joueur']);
         $event->members()->attach($otherMember->id);
-        $parent->members()->attach($child->id, ['relation' => 'parent']);
+        $parent->licensees()->attach($child->licensee);
 
         Livewire::actingAs($parent)
             ->test(Show::class, ['event' => $event])
-            ->assertSee($child->prenom)
+            ->assertSee($child->licensee->firstname)
             ->assertSee('Autre joueur')
             ->assertSet('members', fn ($members): bool => $members->modelKeys() === [$child->id])
             ->assertSet('players', fn ($players): bool => $players->modelKeys() === [$child->id, $otherMember->id]);
@@ -289,7 +289,7 @@ class EventComponentsTest extends TestCase
     {
         $parent = User::factory()->create(['role' => User::ROLE_PARENT]);
         [$event, $child] = $this->createEventMember();
-        $parent->members()->attach($child->id, ['relation' => 'parent']);
+        $parent->licensees()->attach($child->licensee);
 
         Livewire::actingAs($parent)
             ->test(Show::class, ['event' => $event])
@@ -309,7 +309,7 @@ class EventComponentsTest extends TestCase
         [$event, $child] = $this->createEventMember();
         $otherMember = Member::factory()->create();
         $event->members()->attach($otherMember->id);
-        $parent->members()->attach($child->id, ['relation' => 'parent']);
+        $parent->licensees()->attach($child->licensee);
 
         Livewire::actingAs($parent)
             ->test(Show::class, ['event' => $event])

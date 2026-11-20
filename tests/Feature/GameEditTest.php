@@ -241,8 +241,10 @@ class GameEditTest extends TestCase
             'rendezvous' => '17h30',
         ]);
 
-        $selectedMember = Member::factory()->create(['prenom' => 'Alice']);
-        $unselectedMember = Member::factory()->create(['prenom' => 'Bob']);
+        $selectedMember = Member::factory()->create();
+        $selectedMember->licensee->update(['firstname' => 'Alice']);
+        $unselectedMember = Member::factory()->create();
+        $unselectedMember->licensee->update(['firstname' => 'Bob']);
 
         $game->members()->attach($selectedMember->id, ['selected' => true, 'availability' => 'yes']);
         $game->members()->attach($unselectedMember->id, ['selected' => false, 'availability' => 'no']);
@@ -279,11 +281,11 @@ class GameEditTest extends TestCase
             'rendezvous' => null,
         ]);
 
-        $coach = Member::factory()->create(['type' => 'coach', 'prenom' => 'Coach', 'name' => 'C', 'licence' => 'C1']);
-        $team->members()->attach($coach->id);
+        $coach = Member::factory()->create(['type' => 'coach','team_id' => $team->id]);
+        $coach->licensee->update(['firstname' => 'Coach', 'name' => 'C', 'licence' => 'C1']);
 
-        $selectedMember = Member::factory()->create(['type' => 'player', 'prenom' => 'Alice', 'name' => 'A', 'licence' => 'P1', 'numero' => 7]);
-        $team->members()->attach($selectedMember->id);
+        $selectedMember = Member::factory()->create(['type' => 'player', 'numero' => 7,'team_id' => $team->id]);
+        $selectedMember->licensee->update(['firstname' => 'Alice', 'name' => 'A', 'licence' => 'P1']);
         $game->members()->attach($selectedMember->id, ['selected' => true, 'availability' => 'yes']);
 
         $oppositionOption = GameOption::create([
@@ -331,12 +333,10 @@ class GameEditTest extends TestCase
 
         $player = Member::factory()->create([
             'type' => 'player',
-            'prenom' => 'Alice',
-            'name' => 'A',
-            'licence' => 'P1',
             'numero' => 99,
+            'team_id' => $team->id
         ]);
-        $team->members()->attach($player->id);
+        $player->licensee->update(['firstname' => 'Alice', 'name' => 'A', 'licence' => 'P1']);
         $game->members()->attach($player->id, ['selected' => true, 'availability' => 'yes']);
 
         $oppositionOption = GameOption::create([
@@ -384,12 +384,10 @@ class GameEditTest extends TestCase
 
         $player = Member::factory()->create([
             'type' => 'player',
-            'prenom' => 'Bob',
-            'name' => 'B',
-            'licence' => 'P2',
             'numero' => 21,
+            'team_id' => $team->id
         ]);
-        $team->members()->attach($player->id);
+        $player->licensee->update(['firstname' => 'Bob', 'name' => 'B', 'licence' => 'P2']);
         $game->members()->attach($player->id, ['selected' => true, 'availability' => 'yes']);
 
         $oppositionOption = GameOption::create([

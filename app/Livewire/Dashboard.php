@@ -11,7 +11,7 @@ use Carbon\Carbon;
 
 class Dashboard extends Component
 {
-    public $members;
+    public $licensees;
     public $teams;
     public $hasSubscription;
     public $activeTab;
@@ -20,6 +20,11 @@ class Dashboard extends Component
     {
         $this->activeTab = '';
         $this->loaddata();
+    }
+
+    public function hydrate(): void
+    {
+        $this->loadLicensees();
     }
 
     private function loaddata()
@@ -32,21 +37,32 @@ class Dashboard extends Component
                 $this->teams = auth()->user()->ownedTeams()->get();
             }
             
-            $this->members = auth()->user()->members()
-                ->with('games')
-                ->with('events')
-                ->whereIn('type',[Member::TYPE_PLAYER,Member::TYPE_OTM])
-                ->get();
-            if (count($this->members)>0) {
-                $this->activeTab = $this->members[0]->prenom;
+            $this->loadLicensees();
+
+            if (count($this->licensees)>0) {
+                $this->activeTab = $this->licensees[0]->firstname;
             }
-         
         }
         $this->checkPendingGames();
 
         $this->hasSubscription = auth()->user()->pushSubscriptions()->exists();
 
     }
+
+    private function loadLicensees(): void
+    {
+        $this->licensees = auth()->user()->licensees()
+            ->with([
+                'members' => fn ($query) => $query
+                    ->whereHas('games', fn ($games) => $games->where('game_member.called', true))
+                    ->with([
+                        'games' => fn ($games) => $games->where('game_member.called', true),
+                        'events'=> fn ($games) => $games->where('event_member.called', true),
+                    ]),
+            ])
+            ->get();
+    }
+
     public function setTab(string $tab)
     {
         $this->activeTab = $tab;
@@ -62,11 +78,15 @@ class Dashboard extends Component
 
         $user = auth()->user();
 
-        $members = $user->members()->pluck('members.id');
+        $licenseeIds = $user->licensees()->pluck('licensees.id');
+        $memberIds = Member::query()
+            ->whereIn('licensee_id', $licenseeIds)
+            ->pluck('members.id');
 
-        $games = \App\Models\Game::whereHas('members', function ($query) use ($members) {
-            $query->whereIn('members.id', $members)
-                ->whereNull('availability');
+        $games = \App\Models\Game::whereHas('members', function ($query) use ($memberIds) {
+            $query->whereIn('members.id', $memberIds)
+                ->whereNull('availability')
+                ->where('called',true);
         })
         ->whereBetween('date', [now(), now()->addDays(5)])
         ->get();
@@ -94,21 +114,31 @@ class Dashboard extends Component
 
     public function render()
     {
-        foreach($this->members as &$member) {
-            $combined = $member->games->merge($member->events);
-            $member->combined = $combined->sortBy('date');
-        }
+        foreach ($this->licensees as $licensee) {
+            $combined = collect();
 
-        //Recherche le prochain match à afficher
-        $now = \Carbon\Carbon::now();
-        foreach ($this->members as &$member) {
-            $member->nextGameId = null;
-            foreach ($member->combined as $game) {
-                if ($game->date >= $now) {
-                    $member->nextGameId = $game->id;
-                    break;
+            foreach ($licensee->members as $member) {
+                foreach ($member->games as $game) {
+                    $combined->push(['activity' => $game, 'member' => $member]);
+                }
+
+                foreach ($member->events as $event) {
+                    $combined->push(['activity' => $event, 'member' => $member]);
                 }
             }
+
+            $licensee->combined = $combined
+                ->sortBy(fn (array $entry) => Carbon::parse($entry['activity']->date)->getTimestamp())
+                ->values();
+
+            $nextActivity = $licensee->combined->first(
+                fn (array $entry) => Carbon::parse($entry['activity']->date)->greaterThanOrEqualTo(now())
+            );
+            $licensee->nextActivityId = $nextActivity
+                ? ($nextActivity['activity'] instanceof Game ? 'game' : 'event')
+                    .'-'.$nextActivity['member']->id
+                    .'-'.$nextActivity['activity']->id
+                : null;
         }
 
         if (auth()->user() && auth()->user()->isCoach()){

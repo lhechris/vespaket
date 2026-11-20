@@ -16,7 +16,7 @@
     @foreach($players as $player)
     @if($player->isPlayer())
         <tr class="odd:bg-gray-700 even:bg-gray-800 border-b border-default">
-            <td class="px-2 sm:px-6 py-4">{{$player->prenom}}</td>
+            <td class="px-2 sm:px-6 py-4">{{$player->licensee->firstname}}</td>
             @foreach($options as $option)
             @if($option->isDisplayStat())
                 @php

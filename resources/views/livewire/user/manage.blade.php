@@ -73,25 +73,20 @@
                 </div>
             </div>
             <div class="mt-5">
-                <p class="font-semibold">{{ __('vespaket.associate_members') }}</p>
-                @if($this->associatedMembers($newUser['selectedMembers'])->isNotEmpty())
+                <p class="font-semibold">{{ __('vespaket.associate_licensees') }}</p>
+                @if($this->associatedLicensees($newUser['selectedLicensees'])->isNotEmpty())
                     <div class="mt-2 space-y-1 rounded-lg border border-gray-700 bg-yellow-200 p-2 text-sm">
-                        @foreach($this->associatedMembers($newUser['selectedMembers']) as $member)
-                            <p>{{ $member->prenom }} {{ $member->name }} ({{ $newUser['selectedMembers'][$member->id] }})</p>
+                        @foreach($this->associatedLicensees($newUser['selectedLicensees']) as $licensee)
+                            <p>{{ $licensee->firstname }} {{ $licensee->name }}</p>
                         @endforeach
                     </div>
                 @endif
-                <x-text-input wire:model.live.debounce.250ms="memberSearch" id="new-user-member-search" type="search" class="mt-2 w-full border-gray-700 bg-yellow-200" placeholder="{{ __('vespaket.search_member') }}" />
+                <x-text-input wire:model.live.debounce.250ms="licenseeSearch" id="new-user-licensee-search" type="search" class="mt-2 w-full border-gray-700 bg-yellow-200" placeholder="{{ __('vespaket.search_licensee') }}" />
                 <div class="mt-2 max-h-60 space-y-2 overflow-y-auto rounded-lg border border-gray-700 p-2 text-black">
-                    @foreach($this->filteredMembers() as $member)
+                    @foreach($this->filteredLicensees() as $licensee)
                         <label class="flex flex-col gap-2 rounded-lg bg-yellow-200 p-3 sm:flex-row">
-                            <span class="w-64">{{ $member->prenom }} {{ $member->name }} ({{ $member->type }})</span>
-                            <select wire:model="newUser.selectedMembers.{{ $member->id }}" class="rounded border-gray-700 bg-yellow-200 text-black p-1 w-32">
-                                <option value="">--</option>
-                                <option value="{{ \App\Enums\MemberRelation::PARENT }}">{{ __('vespaket.parent') }}</option>
-                                <option value="{{ \App\Enums\MemberRelation::SELF }}">{{ __('vespaket.self') }}</option>
-                                <option value="{{ \App\Enums\MemberRelation::COACH }}">{{ __('vespaket.coach') }}</option>
-                            </select>
+                            <input wire:model="newUser.selectedLicensees" type="checkbox" value="{{ $licensee->id }}" class="mt-1 rounded border-gray-700 bg-yellow-200 text-yellow-500 focus:ring-yellow-500" />
+                            <span class="w-64">{{ $licensee->firstname }} {{ $licensee->name }} @if($licensee->licence)({{ $licensee->licence }})@endif</span>
                         </label>
                     @endforeach
                 </div>
@@ -137,7 +132,7 @@
                             <p class="mt-1 text-xs text-gray-400">{{ $user['email'] }}</p>
                         </td>
                         <td>
-                            <span class="mt-1 text-xs text-gray-300"> {{ $user['memberNames'] }} </span>
+                            <span class="mt-1 text-xs text-gray-300"> {{ $user['licenseeNames'] }} </span>
                         </td>
                         <td class="whitespace-nowrap px-2 py-2 text-right">
                             <button wire:click="editUser({{ $index }})" type="button" class="ml-1 inline-flex h-8 w-8 items-center justify-center rounded-lg border border-yellow-400 bg-yellow-300 p-1 font-semibold text-black hover:bg-yellow-300">
@@ -190,25 +185,20 @@
                                     </div>
 
                                     <div class="mt-5">
-                                        <p class="font-semibold text-gray-900">{{ __('vespaket.associate_members') }}</p>
-                                        @if($this->associatedMembers($user['selectedMembers'])->isNotEmpty())
+                                        <p class="font-semibold text-gray-900">{{ __('vespaket.associate_licensees') }}</p>
+                                        @if($this->associatedLicensees($user['selectedLicensees'])->isNotEmpty())
                                             <div class="mt-2 space-y-1 rounded-lg border border-gray-700 bg-yellow-200 p-2 text-sm">
-                                                @foreach($this->associatedMembers($user['selectedMembers']) as $member)
-                                                    <p>{{ $member->prenom }} {{ $member->name }} ({{ $user['selectedMembers'][$member->id] }})</p>
+                                                @foreach($this->associatedLicensees($user['selectedLicensees']) as $licensee)
+                                                    <p>{{ $licensee->firstname }} {{ $licensee->name }}</p>
                                                 @endforeach
                                             </div>
                                         @endif
-                                        <x-text-input wire:model.live.debounce.250ms="memberSearch" id="user-member-search-{{ $user['id'] }}" type="search" class="mt-2 w-full border-gray-700 bg-yellow-200" placeholder="{{ __('vespaket.search_member') }}" />
+                                        <x-text-input wire:model.live.debounce.250ms="licenseeSearch" id="user-licensee-search-{{ $user['id'] }}" type="search" class="mt-2 w-full border-gray-700 bg-yellow-200" placeholder="{{ __('vespaket.search_licensee') }}" />
                                         <div class="mt-2 max-h-60 space-y-2 overflow-y-auto rounded-lg border border-gray-700 p-2">
-                                            @foreach($this->filteredMembers() as $member)
+                                            @foreach($this->filteredLicensees() as $licensee)
                                                 <label class="flex flex-col gap-2 rounded-lg bg-yellow-200 p-3 sm:flex-row ">
-                                                    <span class="w-64">{{ $member->prenom }} {{ $member->name }} ({{ $member->type }})</span>
-                                                    <select wire:model="users.{{ $index }}.selectedMembers.{{ $member->id }}" class="rounded border-gray-700 bg-yellow-200 p-1 w-32">
-                                                        <option value="">--</option>
-                                                        <option value="{{ \App\Enums\MemberRelation::PARENT }}">{{ __('vespaket.parent') }}</option>
-                                                        <option value="{{ \App\Enums\MemberRelation::SELF }}">{{ __('vespaket.self') }}</option>
-                                                        <option value="{{ \App\Enums\MemberRelation::COACH }}">{{ __('vespaket.coach') }}</option>
-                                                    </select>
+                                                    <input wire:model="users.{{ $index }}.selectedLicensees" type="checkbox" value="{{ $licensee->id }}" class="mt-1 rounded border-gray-700 bg-yellow-200 text-yellow-500 focus:ring-yellow-500" />
+                                                    <span class="w-64">{{ $licensee->firstname }} {{ $licensee->name }} @if($licensee->licence)({{ $licensee->licence }})@endif</span>
                                                 </label>
                                             @endforeach
                                         </div>

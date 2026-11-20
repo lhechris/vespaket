@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unique(['game_id', 'member_id'], 'game_member_game_id_member_id_unique');
             $table->string('availability')->nullable(); // yes, no, maybe
             $table->boolean('selected')->default(false);
+            $table->boolean('called')->default(true);
             $table->timestamps();
         });
     }

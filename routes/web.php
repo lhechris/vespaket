@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Team;
-use App\Livewire\Member;
+use App\Livewire\Licensee;
 use App\Livewire\Dashboard;
 use App\Livewire\User;
 use App\Livewire\Game;
@@ -56,8 +56,8 @@ Route::middleware(['auth', 'isCoach'])->group(function () {
     Route::get('/team/{team}', Team\Show::class)->name('team.show');
     Route::get('/team/{team}/members', Team\ManageMembers::class)->name('team.members');
     Route::get('/team/{team}/owners', Team\Owners::class)->name('team.owners');
-    Route::get('/members', Member\Manage::class)->name("members");
     Route::get('/users', User\Manage::class)->name("users");
+    Route::get('/licensees', Licensee\Index::class)->name("licensees");
 
     Route::get('/teams/create', Team\Create::class)->name('teams.create');
     Route::get('/team/{team}/games/create', Game\Create::class)->name('team.games.create');
@@ -76,7 +76,6 @@ Route::middleware(['auth', 'isCoach'])->group(function () {
     Route::get('/events/edit/{event}', Event\Edit::class)->name('event.edit');
 
     Route::get('/games/edit/{game}', Game\Edit::class)->name('game.edit');
-    Route::get('/games/selection/{game}', Game\Selection::class)->name('game.selection');
     Route::get('/trainings/{training}', Training\Show::class)->name('training.show');
 
     Route::get('/gymnase',Gymnase\Show::class)->name('gymnase.show');

@@ -38,9 +38,9 @@
                 ➕ {{ __('vespaket.create_team') }}
             </a>
 
-            <a href="{{ route('members') }}"
+            <a href="{{ route('licensees') }}"
                class="bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-200">
-                👥 {{ __('vespaket.manage_members') }}
+                👥 {{ __('vespaket.licensees') }}
             </a>
 
             <a href="{{ route('gymnase.show') }}"
@@ -89,14 +89,14 @@
         </div>
     </div>
 
-    <!-- MEMBRES -->
-    @if(count($members)>1)
+    <!-- LICENCIES -->
+    @if(count($licensees)>1)
     <div class="mt-6">
         <nav class="flex flex-wrap gap-2 bg-white rounded-full border border-gray-200 p-2 shadow-sm">
-        @foreach($members as $member)
-            <button wire:click="setTab('{{$member->prenom}}')"
-                    class="px-2 sm:px-4 py-2 rounded-full text-sm font-semibold {{ $activeTab === $member->prenom ? 'bg-gray-500 text-white' : 'bg-transparent text-gray-700 hover:bg-gray-100' }}">
-                <p class="text-lg">{{ $member->prenom }}</p>
+        @foreach($licensees as $licensee)
+            <button wire:click="setTab('{{$licensee->firstname}}')"
+                    class="px-2 sm:px-4 py-2 rounded-full text-sm font-semibold {{ $activeTab === $licensee->firstname ? 'bg-gray-500 text-white' : 'bg-transparent text-gray-700 hover:bg-gray-100' }}">
+                <p class="text-lg">{{ $licensee->firstname }}</p>
             </button>
         @endforeach    
         </nav>
@@ -105,26 +105,26 @@
 
     
     <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800">
-@forelse($members as $member)
-@if($activeTab==$member->prenom)
+@forelse($licensees as $licensee)
+@if($activeTab==$licensee->firstname)
 
         <h2 class="text-white font-bold mb-4">
-            {{ __('vespaket.presence_of', ["name" => $member->prenom])  }}
+            {{ __('vespaket.presence_of', ["name" => $licensee->firstname])  }}
         </h2>
-
-        <x-cards-scroll nextElementId="game-{{$member->id}}-{{$member->nextGameId}}" >
-
-            @forelse($member->combined as $game)
-                @if($game instanceof \App\Models\Event && (!$member->isotm()))                    
+        <x-cards-scroll nextElementId="{{ $licensee->nextActivityId }}">
+            @forelse($licensee->combined as $entry)
+                @php($activity = $entry['activity'])
+                @php($member = $entry['member'])
+                @if($activity instanceof \App\Models\Event && (!$member->isotm()))
                 <livewire:event.card 
-                        :event="$game" :member="$member"
-                        :key="'event-'.$member->id.'-'.$game->id"
+                    :event="$activity" :member="$member"
+                    :key="'event-'.$member->id.'-'.$activity->id"
                 ></livewire:event.card>                
-                @elseif($game instanceof \App\Models\Game && (!$member->isotm() || $game->isDomicile()))
+                @elseif($activity instanceof \App\Models\Game && (!$member->isotm() || $activity->isDomicile()))
                     <livewire:game.card 
-                            :game="$game" 
+                        :game="$activity"
                             :member="$member"
-                            :key="'event-'.$member->id.'-'.$game->id"
+                        :key="'game-'.$member->id.'-'.$activity->id"
                         ></livewire:game.card>
                 @endif
             @empty

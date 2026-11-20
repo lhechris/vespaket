@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('status')->default('active');
             $table->string('source')->default('manual');
             $table->string('external_id')->nullable();
+            $table->string('pool_external_id')->nullable();
             $table->timestamps();
 
             $table->unique(['source', 'external_id']);

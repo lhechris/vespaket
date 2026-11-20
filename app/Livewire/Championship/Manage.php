@@ -171,10 +171,12 @@ class Manage extends Component
                 'category' => $validated['category'] ?: null,
                 'division' => $validated['division'] ?: null,
                 'pool' => $validated['pool'] ?: null,
-                'source' => $validated['source'],
-                'external_id' => $selectedDesimoneTeam['competition_id'],
-                'pool_external_id' => $selectedDesimoneTeam['poule_id'],
+                'source' => $validated['source']
             ];
+            if ($selectedDesimoneTeam) {
+                $attributes['external_id'] = $selectedDesimoneTeam['competition_id'];
+                $attributes['pool_external_id'] = $selectedDesimoneTeam['poule_id'];
+            }
 
             if ($this->championship) {
                 $this->championship->update($attributes);
@@ -202,7 +204,6 @@ class Manage extends Component
                 'external_id' => $externalTeamId,
             ]);
         });
-      
 
         session()->flash('success', $this->championship ? 'Championnat modifié.' : 'Championnat créé.');
 

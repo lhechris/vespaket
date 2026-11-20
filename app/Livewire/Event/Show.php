@@ -4,6 +4,7 @@ namespace App\Livewire\Event;
 
 use Livewire\Component;
 use App\Models\Event;
+use App\Models\Member;
 
 class Show extends Component
 {
@@ -18,7 +19,9 @@ class Show extends Component
 
     public function setAvailability($memberId,$value)
     {
-        abort_unless(auth()->user()?->members()->whereKey($memberId)->exists(), 403);
+        abort_unless(auth()->user()?->licensees()
+            ->whereHas('members', fn ($query) => $query->whereKey($memberId))
+            ->exists(), 403);
         abort_unless($this->event->members()->whereKey($memberId)->exists(), 403);
 
         validator(['value' => $value], [
@@ -33,12 +36,26 @@ class Show extends Component
     }
  
     private function loaddata() {
-        $this->memberIds = auth()->user()->members()->pluck('members.id');
-        $this->members = $this->event->members()
-                ->whereIn('members.id', $this->memberIds)
-                ->get();
+        $memberIds = auth()->user()->licensees()
+            ->with('members')
+            ->get()
+            ->flatMap(fn ($licensee) => $licensee->members->modelKeys())
+            ->unique()
+            ->values();
 
-        $this->players = $this->event->members()->get();
+        $this->players = $this->event->members()
+            ->whereIn('type', [Member::TYPE_PLAYER, Member::TYPE_SUB])
+            ->where('event_member.called', true)
+            ->with([
+                'licensee',                
+            ])
+            ->get();
+
+        $this->members = $this->event->members()
+            ->where('event_member.called', true)
+            ->whereIn('members.id', $memberIds)
+            ->with('licensee')
+            ->get();
     }
 
     public function render()

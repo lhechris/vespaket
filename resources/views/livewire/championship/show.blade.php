@@ -213,7 +213,7 @@
                 </div>
             @else
                 <p class="rounded-xl bg-slate-900/40 p-4 text-sm text-slate-300">
-                    Aucun classement n’a encore été enregistré pour ce championnat.
+                    Aucun classement n'a encore été enregistré pour ce championnat.
                 </p>
             @endif
         </section>

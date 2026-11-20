@@ -146,8 +146,8 @@ new class extends Component
                                 <x-dropdown-link :href="route('users')" wire:navigate>
                                     {{ __('vespaket.users') }}
                                 </x-dropdown-link>
-                                <x-dropdown-link :href="route('members')" wire:navigate>
-                                    {{ __('vespaket.members') }}
+                                <x-dropdown-link :href="route('licensees')" wire:navigate>
+                                    {{ __('vespaket.licensees') }}
                                 </x-dropdown-link>
                                 <x-dropdown-link :href="route('gymnase.show')" wire:navigate>
                                    {{ __('vespaket.sport_hall') }}

@@ -28,10 +28,12 @@ class TeamSubcomponentsTest extends TestCase
         $team = Team::factory()->create();
         $team->owners()->attach($owner->id);
         $player = Member::factory()->create([
-            'prenom' => 'Alice',
+            'team_id' => $team->id,
+        ]);
+        $player->licensee->update([
+            'firstname' => 'Alice',
             'name' => 'Example',
         ]);
-        $team->members()->attach($player->id);
 
         $recentGame = Game::factory()->create([
             'team_id' => $team->id,
@@ -93,21 +95,18 @@ class TeamSubcomponentsTest extends TestCase
 
     public function test_members_lists_players_and_saves_member_edits(): void
     {
+        $owner = User::factory()->create();
         $team = Team::factory()->create();
-        $player = Member::factory()->create([
-            'prenom' => 'Alice',
-            'licence' => 'LIC-1',
-            'numero' => 8,
-        ]);
-        $coach = Member::factory()->create([
-            'prenom' => 'Coach',
-            'type' => Member::TYPE_COACH,
-        ]);
-        $team->members()->attach([$player->id, $coach->id]);
+        $team->owners()->attach($owner);
+        $player = Member::factory()->create(['numero' => 8,'team_id' => $team->id]);
+        $player->licensee->update(['firstname' => 'Alice', 'licence' => 'LIC-1']);
+        $coach = Member::factory()->create(['type' => Member::TYPE_COACH ,  'team_id' => $team->id]);
+        $coach->licensee->update(['firstname' => 'Coach']);
 
-        Livewire::test(Members::class, ['team' => $team])
+        Livewire::actingAs($owner)
+            ->test(Members::class, ['team' => $team])
             ->assertSee('Alice')
-            ->assertSet('members', fn ($members) => $members->modelKeys() === [$player->id])
+            ->assertSet('players', fn ($players) => $players->modelKeys() === [$player->id])
             ->call('editMember', $player->id)
             ->assertSet('editingMemberId', $player->id)
             ->set('editingMember.prenom', 'Alice mise à jour')
@@ -116,17 +115,22 @@ class TeamSubcomponentsTest extends TestCase
             ->call('saveMember')
             ->assertSet('editingMemberId', null);
 
+        $this->assertDatabaseHas('licensees', [
+            'id' => $player->licensee_id,
+            'firstname' => 'Alice mise à jour',
+            'licence' => 'LIC-2',
+        ]);
         $this->assertDatabaseHas('members', [
             'id' => $player->id,
-            'prenom' => 'Alice mise à jour',
-            'licence' => 'LIC-2',
             'numero' => '12',
         ]);
     }
 
     public function test_games_lists_matches_and_identifies_the_next_game(): void
     {
+        $owner = User::factory()->create();
         $team = Team::factory()->create();
+        $team->owners()->attach($owner);
         Game::factory()->create([
             'team_id' => $team->id,
             'titre' => 'Match passé',
@@ -143,7 +147,8 @@ class TeamSubcomponentsTest extends TestCase
             'date' => now()->addDays(2),
         ]);
 
-        Livewire::test(Games::class, ['team' => $team])
+        Livewire::actingAs($owner)
+            ->test(Games::class, ['team' => $team])
             ->assertSet('nextGameId', $nextGame->id)
             ->assertSee('Match passé')
             ->assertSee('Prochain match')
@@ -152,9 +157,12 @@ class TeamSubcomponentsTest extends TestCase
 
     public function test_parameters_saves_team_details_and_creates_game_options(): void
     {
+        $owner = User::factory()->create();
         $team = Team::factory()->create();
+        $team->owners()->attach($owner);
 
-        Livewire::test(Parameters::class, ['team' => $team])
+        Livewire::actingAs($owner)
+            ->test(Parameters::class, ['team' => $team])
             ->set('teamName', 'Equipe modifiée')
             ->set('teamWhatsapp', 'https://wa.me/123456')
             ->set('teamMsgConvocation', 'Rendez-vous à 18h')
@@ -185,7 +193,9 @@ class TeamSubcomponentsTest extends TestCase
 
     public function test_parameters_can_add_and_delete_game_option_rows(): void
     {
+        $owner = User::factory()->create();
         $team = Team::factory()->create();
+        $team->owners()->attach($owner);
         $option = GameOption::create([
             'team_id' => $team->id,
             'name' => 'Ancienne option',
@@ -194,7 +204,8 @@ class TeamSubcomponentsTest extends TestCase
             'display' => GameOption::DISP_ALL,
         ]);
 
-        Livewire::test(Parameters::class, ['team' => $team])
+        Livewire::actingAs($owner)
+            ->test(Parameters::class, ['team' => $team])
             ->call('addRow')
             ->assertCount('gameoptions', 2)
             ->call('delete', $option->id);

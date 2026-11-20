@@ -34,6 +34,7 @@ class Edit extends Component
     public $members;
     public $selected;
     public $places;
+    public $otms;
 
 
     public function mount()
@@ -48,7 +49,6 @@ class Edit extends Component
         $this->gameNumero = $this->game->numero ?? 0;
         
         $this->loaddata();
-
     }
 
     private function loaddata() {
@@ -59,7 +59,10 @@ class Edit extends Component
                 ->with(['options' => function($query) {
                     $query->wherePivot('game_id',$this->game->id);
                 }])
-                ->get();
+                ->orderBy('type')
+                ->get()
+                ->sortBy([["type"],["licensee.firstname"]]);
+
         $this->options = GameOption::where("team_id",$this->game->team_id)
                         ->orderBy('order')
                         ->get();
@@ -91,18 +94,16 @@ class Edit extends Component
                 }
             }
         }
+        $this->otms = [];
+        foreach($this->members as $member) {
+           if ($member->isotm()) {
+            $this->otms[] = $member;
+           }
+        }
 
         $this->generateMessage();
         
         $this->places = Place::orderby('name')->get();
-
-        /*foreach ($this->members as $member) {
-            \Log::info("$member->prenom");
-            foreach ($member->options as $option) {
-                \Log::info("$option->type = ".$option->pivot->value);
-            }
-        }*/
-
 
     }
 
@@ -116,10 +117,10 @@ class Edit extends Component
             foreach($this->members as $member) {
                 if ($member->pivot->selected) {
                     if ($sels !== "") { $sels.=", ";}
-                    $sels .= $member->prenom;
+                    $sels .= $member->licensee->firstname;
                 } else {
                     if ($notsels !== "") { $notsels.=", ";}
-                    $notsels .= $member->prenom;
+                    $notsels .= $member->licensee->firstname;
                 }
             }
             $this->message = str_replace('%SELECTION%',$sels,$this->message);
@@ -238,9 +239,9 @@ class Edit extends Component
             $joueur = $joueurData['joueur'];
             $sheet->setCellValue("A$numligne", $joueurData['numero']);
             
-            $sheet->setCellValue("B$numligne", $joueur->licence);
-            $sheet->setCellValue("C$numligne", $joueur->name);
-            $sheet->setCellValue("D$numligne", $joueur->prenom);
+            $sheet->setCellValue("B$numligne", $joueur->licensee->licence);
+            $sheet->setCellValue("C$numligne", $joueur->licensee->name);
+            $sheet->setCellValue("D$numligne", $joueur->licensee->firstname);
             $numligne++;
         }
     }
@@ -249,9 +250,9 @@ class Edit extends Component
     {
         $numligne=$start;
         foreach($staffs as $s) {            
-            $sheet->setCellValue("A$numligne", $s->licence);
-            $sheet->setCellValue("C$numligne", $s->name);
-            $sheet->setCellValue("D$numligne", $s->prenom);
+            $sheet->setCellValue("A$numligne", $s->licensee->licence);
+            $sheet->setCellValue("C$numligne", $s->licensee->name);
+            $sheet->setCellValue("D$numligne", $s->licensee->firstname);
             $numligne++;
         }
     }    
@@ -308,6 +309,17 @@ class Edit extends Component
         ]);
 
         $this->loaddata();
+    }
+
+    public function toggleCalled($memberId)
+    {
+        $pivot = $this->game->members()->find($memberId)->pivot;
+
+        $this->game->members()->updateExistingPivot($memberId, [
+            'called' => !$pivot->called
+        ]);
+
+        $this->loaddata();
 
     }
 
@@ -336,9 +348,9 @@ class Edit extends Component
     {
        \Log::info("sendNotification");
 
-       $usersToNotify = User::whereHas('members', function ($query) {
+       $usersToNotify = User::whereHas('licensees.members', function ($query) {
            $query->whereHas('games', function ($subQuery) {
-               $subQuery->where('game_id', $this->game->id)
+               $subQuery->where('games.id', $this->game->id)
                    ->where(function ($availabilityQuery) {
                        $availabilityQuery->where('availability', 'maybe')
                            ->orWhereNull('availability');

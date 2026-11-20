@@ -2,30 +2,30 @@
 
 namespace App\Livewire\User;
 
-use Livewire\Component;
-use App\Models\User;
-use App\Models\Member;
-use Illuminate\Support\Facades\Hash;
-use App\Notifications\userNotification;
-use Illuminate\Support\Str;
 use App\Models\Invitation;
+use App\Models\Licensee;
+use App\Models\User;
+use App\Notifications\userNotification;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+use Livewire\Component;
 
 class Manage extends Component
 {
     public array $users = [];
-    public $members;
+    public $licensees;
     public array $newUser = [
         'name' => '',
         'firstname' => '',
         'email' => '',
         'password' => '',
         'role' => 'parent',
-        'selectedMembers' => [],
+        'selectedLicensees' => [],
     ];
     public bool $creating = false;
     public ?string $link = null;
     public ?int $editingIndex = null;
-    public string $memberSearch = '';
+    public string $licenseeSearch = '';
     public string $userSearch = '';
     public int $usersPage = 1;
     public int $usersLastPage = 1;
@@ -37,7 +37,7 @@ class Manage extends Component
 
     public function loadData()
     {
-        $usersQuery = User::with('members')->with('invitations')
+        $usersQuery = User::with('licensees')->with('invitations')
             ->orderBy('firstname')
             ->orderBy('id');
 
@@ -63,17 +63,17 @@ class Manage extends Component
                 'email' => $user->email,
                 'password' => '',
                 'role' => $user->role,
-                'selectedMembers' => $user->members
-                    ->mapWithKeys(fn (Member $member): array => [$member->id => $member->pivot->relation])
-                    ->toArray(),
-                'memberNames' => $user->members->pluck('prenom')->join(', '),
+                'selectedLicensees' => $user->licensees->modelKeys(),
+                'licenseeNames' => $user->licensees
+                    ->map(fn (Licensee $licensee): string => trim($licensee->firstname.' '.$licensee->name))
+                    ->join(', '),
                 'invitations' => $user->invitations->pluck('token')->join(', '),                
             ])            
             ->all();
-        $this->members = Member::select()->orderBy('prenom')->orderby('name')->get();
-        if (!$this->newUser['selectedMembers']) {
-            $this->newUser['selectedMembers'] = $this->members->mapWithKeys(fn (Member $member): array => [$member->id => ''])->all();
-        }
+        $this->licensees = Licensee::query()
+            ->orderBy('firstname')
+            ->orderBy('name')
+            ->get();
     }
 
     public function updatedUserSearch(): void
@@ -105,21 +105,21 @@ class Manage extends Component
     {
         $this->cancelCreate();
         $this->editingIndex = null;
-        $this->memberSearch = '';
+        $this->licenseeSearch = '';
         $this->creating = true;
     }
 
     public function cancelCreate(): void
     {
         $this->resetValidation();
-        $this->memberSearch = '';
+        $this->licenseeSearch = '';
         $this->newUser = [
             'name' => '',
             'firstname' => '',
             'email' => '',
             'password' => '',
             'role' => 'parent',
-            'selectedMembers' => $this->members->mapWithKeys(fn (Member $member): array => [$member->id => ''])->all(),
+            'selectedLicensees' => [],
         ];
         $this->creating = false;
     }
@@ -132,15 +132,9 @@ class Manage extends Component
             'newUser.email' => ['required', 'email', 'unique:users,email'],
             'newUser.password' => ['required', 'string', 'min:6'],
             'newUser.role' => ['required', 'in:player,parent,coach'],
-            'newUser.selectedMembers' => ['array'],
+            'newUser.selectedLicensees' => ['array'],
+            'newUser.selectedLicensees.*' => ['integer', 'distinct', 'exists:licensees,id'],
         ]);
-
-        $validRelations = [\App\Enums\MemberRelation::PARENT, \App\Enums\MemberRelation::SELF, \App\Enums\MemberRelation::COACH];
-        foreach ($this->newUser['selectedMembers'] as $relation) {
-            if ($relation && !in_array($relation, $validRelations, true)) {
-                abort(400);
-            }
-        }
 
         $user = User::create([
             'name' => $this->newUser['name'],
@@ -149,7 +143,7 @@ class Manage extends Component
             'password' => Hash::make($this->newUser['password']),
             'role' => $this->newUser['role'],
         ]);
-        $this->sync_members($user, $this->newUser['selectedMembers']);
+        $this->syncLicensees($user, $this->newUser['selectedLicensees']);
         $this->loadData();
         $this->cancelCreate();
         session()->flash('success', 'Utilisateur créé.');
@@ -181,15 +175,9 @@ class Manage extends Component
             "users.$index.email" => ['required', 'email'],
             "users.$index.role" => ['required', 'in:'.$authorizedroles],
             "users.$index.password" => ['nullable', 'string', 'min:6'],
+            "users.$index.selectedLicensees" => ['array'],
+            "users.$index.selectedLicensees.*" => ['integer', 'distinct', 'exists:licensees,id'],
         ]);
-
-        $validRelations = [\App\Enums\MemberRelation::PARENT, \App\Enums\MemberRelation::SELF, \App\Enums\MemberRelation::COACH];
-
-        foreach ($this->users[$index]['selectedMembers'] as $relation) {
-            if ($relation && !in_array($relation, $validRelations)) {
-                abort(400);
-            }
-        }
 
         $data = [
             'name' => $this->users[$index]['name'],
@@ -204,27 +192,15 @@ class Manage extends Component
 
         
         $user->update($data);
-        $this->sync_members($user, $this->users[$index]['selectedMembers']);
+        $this->syncLicensees($user, $this->users[$index]['selectedLicensees']);
         $this->editingIndex = null;
         session()->flash('success', 'Utilisateur modifié.');
         $this->loadData();
     }
 
-    private function sync_members(User $user, array $selectedMembers): void
+    private function syncLicensees(User $user, array $selectedLicensees): void
     {
-        //Sync members
-        $sync = [];
-
-        foreach ($selectedMembers as $memberId => $relation) {
-
-            if (!$relation) continue;
-
-            $sync[$memberId] = [
-                'relation' => $relation
-            ];
-        }
-
-        $user->members()->sync($sync);
+        $user->licensees()->sync($selectedLicensees);
     }
 
 
@@ -235,7 +211,8 @@ class Manage extends Component
             'newUser.name' => ['required', 'string', 'min:2'],
             'newUser.email' => ['nullable', 'email'],
             'newUser.role' => ['required', 'in:player,parent,coach'],
-            'newUser.selectedMembers' => ['array'],
+            'newUser.selectedLicensees' => ['array'],
+            'newUser.selectedLicensees.*' => ['integer', 'distinct', 'exists:licensees,id'],
         ]);
 
         $token = Str::uuid();
@@ -257,7 +234,7 @@ class Manage extends Component
             'expires_at' => now()->addDays(7),
         ]);
 
-        $this->sync_members($user, $this->newUser['selectedMembers']);
+        $this->syncLicensees($user, $this->newUser['selectedLicensees']);
 
         $this->loadData();
         $this->cancelCreate();
@@ -269,34 +246,34 @@ class Manage extends Component
     {
         $this->creating = false;
         $this->editingIndex = $index;
-        $this->memberSearch = '';
+        $this->licenseeSearch = '';
     }
 
     public function cancelEdit(): void
     {
         $this->loadData();
         $this->editingIndex = null;
-        $this->memberSearch = '';
+        $this->licenseeSearch = '';
     }
 
-    public function filteredMembers()
+    public function filteredLicensees()
     {
-        $search = mb_strtolower(trim($this->memberSearch));
+        $search = mb_strtolower(trim($this->licenseeSearch));
 
         if ($search === '') {
-            return $this->members;
+            return $this->licensees;
         }
 
-        return $this->members->filter(function (Member $member) use ($search): bool {
-            $memberText = mb_strtolower($member->prenom.' '.$member->name.' '.$member->type);
+        return $this->licensees->filter(function (Licensee $licensee) use ($search): bool {
+            $licenseeText = mb_strtolower($licensee->firstname.' '.$licensee->name.' '.$licensee->licence);
 
-            return str_contains($memberText, $search);
+            return str_contains($licenseeText, $search);
         });
     }
 
-    public function associatedMembers(array $selectedMembers)
+    public function associatedLicensees(array $selectedLicensees)
     {
-        return $this->members->filter(fn (Member $member): bool => !empty($selectedMembers[$member->id] ?? null));
+        return $this->licensees->whereIn('id', $selectedLicensees);
     }
 
     public function delete($id)

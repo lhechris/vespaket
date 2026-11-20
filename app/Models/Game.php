@@ -24,7 +24,7 @@ class Game extends Model
     public function members()
     {
         return $this->belongsToMany(Member::class)
-            ->withPivot('availability', 'selected')
+            ->withPivot('availability', 'selected','called')
             ->withTimestamps();
     }
 

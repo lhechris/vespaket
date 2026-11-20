@@ -24,23 +24,31 @@
     >
 
     <!-- RESULTATS -->
-    @foreach($results as $member)
+    @foreach($results as $licensee)
         <div class="flex justify-between border p-2 mb-2">
 
             <span>
-                {{ $member->prenom }} {{ $member->name }} ({{ $member->type }})
+                {{ $licensee->firstname }} {{ $licensee->name }}
+                @if($licensee->licence)
+                    <span class="text-sm text-gray-500">({{ $licensee->licence }})</span>
+                @endif
             </span>
 
             <div class="space-x-2">
-                <button wire:click="addMember({{ $member->id }}, 'player')"
-                    class="bg-green-500 text-white px-2 py-1">
-                    {{ __('vespaket.player') }}
-                </button>
-
-                <button wire:click="addMember({{ $member->id }}, 'coach')"
-                    class="bg-blue-500 text-white px-2 py-1">
-                    {{ __('vespaket.coach') }}
-                </button>
+                @foreach([
+                    \App\Models\Member::TYPE_PLAYER => __('vespaket.player'),
+                    \App\Models\Member::TYPE_COACH => __('vespaket.coach'),
+                    \App\Models\Member::TYPE_OTM => __('vespaket.otm'),
+                    \App\Models\Member::TYPE_SUB => __('vespaket.sub'),
+                ] as $role => $label)
+                    @unless($licensee->members->contains(fn ($member) => $member->type === $role && $member->team->id === $team->id))
+                        <button wire:click="addLicenseeMember({{ $licensee->id }}, '{{ $role }}')"
+                            type="button"
+                            class="bg-green-500 text-white px-2 py-1">
+                            {{ $label }}
+                        </button>
+                    @endunless
+                @endforeach
             </div>
 
         </div>
@@ -61,7 +69,9 @@
         <tbody>
             @foreach($members as $member)
             <tr class="odd:bg-gray-700 even:bg-gray-800 border-b border-default">
-                <td class="px-6 py-4">{{ $member->prenom }} {{ $member->name }} </td>
+                <td class="px-6 py-4">
+                    {{ $member->licensee->firstname.' '.$member->licensee->name }}
+                </td>
                 <td class="px-6 py-4">{{ $member->type }}</td>
                 <td class="px-6 py-4">
                     <button wire:click="removeMember({{ $member->id }})" class="text-red-600">

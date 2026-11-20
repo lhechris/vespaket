@@ -26,7 +26,9 @@ class Card extends Component
         abort_unless($this->event->members()->whereKey($this->member->id)->exists(), 403);
         abort_unless(
             $user->isCoach()
-                || ($user->isParent() && $user->members()->whereKey($this->member->id)->exists()),
+                || ($user->isParent() && $user->licensees()
+                    ->whereHas('members', fn ($query) => $query->whereKey($this->member->id))
+                    ->exists()),
             403
         );
 

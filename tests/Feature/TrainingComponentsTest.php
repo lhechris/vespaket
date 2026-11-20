@@ -20,9 +20,8 @@ class TrainingComponentsTest extends TestCase
     {
         $coach = User::factory()->create(['role' => User::ROLE_COACH]);
         $team = Team::factory()->create();
-        $player = Member::factory()->create(['type' => Member::TYPE_PLAYER]);
-        $teamCoach = Member::factory()->create(['type' => Member::TYPE_COACH]);
-        $team->members()->attach([$player->id, $teamCoach->id]);
+        $player = Member::factory()->create(['type' => Member::TYPE_PLAYER, "team_id" => $team->id]);
+        $teamCoach = Member::factory()->create(['type' => Member::TYPE_COACH, "team_id" => $team->id]);
 
         $response = Livewire::actingAs($coach)
             ->test(Create::class, ['team' => $team])
@@ -132,8 +131,7 @@ class TrainingComponentsTest extends TestCase
     private function createTrainingWithMember(): array
     {
         $team = Team::factory()->create();
-        $member = Member::factory()->create(['type' => Member::TYPE_PLAYER]);
-        $team->members()->attach($member->id);
+        $member = Member::factory()->create(['type' => Member::TYPE_PLAYER,'team_id' => $team->id]);
         $training = Training::create([
             'team_id' => $team->id,
             'titre' => 'Entraînement',

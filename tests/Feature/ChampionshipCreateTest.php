@@ -27,6 +27,7 @@ class ChampionshipCreateTest extends TestCase
             ->set('category', 'U13')
             ->set('division', 'Division 2')
             ->set('pool', 'Poule A')
+            ->set('source', 'scorenco')
             ->set('scorencoteamid', '98765')
             ->call('save')
             ->assertHasNoErrors()
@@ -81,12 +82,11 @@ class ChampionshipCreateTest extends TestCase
                 ]],
             ]),
         ]);
-
         Livewire::actingAs($admin)
             ->test(Manage::class, ['team' => $team])
             ->set('source', 'desimone')
             ->assertSet('desimoneTeams.0.engagement_id', '200000005357987')
-            ->set('desimoneSelection', '200000005357987')
+            ->set('desimoneSelection', '200000003063776')
             ->assertSet('name', 'Départementale féminine U15 - Division 3')
             ->assertSet('category', 'U15')
             ->assertSet('division', 'DFU15-3')
@@ -99,13 +99,14 @@ class ChampionshipCreateTest extends TestCase
         $this->assertDatabaseHas('championships', [
             'id' => $championship->id,
             'source' => 'desimone',
-            'external_id' => '200000003063776',
+            'external_id' => '200000002898776',
+            'pool_external_id' => '200000003063776',
         ]);
         $this->assertDatabaseHas('championship_teams', [
             'championship_id' => $championship->id,
             'team_id' => $team->id,
             'source' => 'desimone',
-            'external_id' => '200000003063776',
+            'external_id' => '200000005357987',
         ]);
     }
 

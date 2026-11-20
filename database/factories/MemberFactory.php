@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Licensee;
 use App\Models\Member;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,10 +19,9 @@ class MemberFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->lastName(),
-            'prenom' => fake()->firstName(),
             'type' => Member::TYPE_PLAYER,
             'numero' => fake()->randomNumber(2,false),
+            'licensee_id' => Licensee::factory(),
         ];
     }
 }

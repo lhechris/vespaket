@@ -18,11 +18,11 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         @foreach ($members as $member)
-        @if($member->isplayer())
+        @if($member->isplayer()||$member->issub())
             <div class="bg-slate-800 p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4 text-yellow-300">
                 <div class="flex items-center justify-between gap-4">
                     <div>
-                        <p class="text-lg font-semibold text-yellow-200">{{ $member->prenom }}</p>
+                        <p class="text-lg font-semibold text-yellow-200">{{ $member->licensee->firstname }}</p>
                     </div>
                 </div>
 
@@ -56,10 +56,10 @@
             </thead>
             <tbody>
                 @foreach($players as $player)
-                @if($player->isplayer())
+                @if($player->isplayer()||$player->issub())
 
                     <tr class="odd:bg-gray-700 even:bg-gray-800 border-b border-default">
-                        <td class="px-2 sm:px-6 py-4">{{ $player->prenom }}</td>
+                        <td class="px-2 sm:px-6 py-4">{{ $player->licensee->firstname }}</td>
                         <td>
                             @if($player->pivot->availability=='yes')
                             ✅​

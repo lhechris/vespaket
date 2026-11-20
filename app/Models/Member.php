@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Member extends Model
 {
@@ -12,36 +13,24 @@ class Member extends Model
     const TYPE_PLAYER = 'player';
     const TYPE_COACH = 'coach';
     const TYPE_OTM = 'otm';
+    const TYPE_SUB = 'sub';
 
     protected $fillable = [
-        'name',
-        'prenom',
+        'numero',
         'type',
-        'user_id',
         'licence',
-        'numero'
+        'team_id'
     ];
 
-    public function users()
+    public function licensee() : BelongsTo
     {
-        return $this->belongsToMany(User::class)
-            ->withPivot('relation')
-            ->withTimestamps();
-    }
-
-
-    public function parents()
+        return $this->belongsTo(Licensee::class);
+    }    
+  
+    public function team() : BelongsTo
     {
-        return $this->users()->wherePivot('relation', 'parent');
+        return $this->belongsTo(Team::class);
     }
-
-    
-    public function teams()
-    {
-        return $this->belongsToMany(Team::class)
-            ->withTimestamps();
-    }
-
 
     public function trainings()
     {
@@ -49,14 +38,12 @@ class Member extends Model
             ->withPivot('present')
             ->withTimestamps()
             ->orderBy('date');
-
     }
-
 
     public function games()
     {
         return $this->belongsToMany(Game::class)
-            ->withPivot('availability', 'selected')
+            ->withPivot('availability', 'selected', 'called')
             ->withTimestamps()
             ->orderBy('date');
     }
@@ -102,4 +89,8 @@ class Member extends Model
     {
         return $this->type === self::TYPE_COACH;
     }
+    public function issub() 
+    {
+        return $this->type === self::TYPE_SUB;
+    }    
 }

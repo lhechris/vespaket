@@ -5,6 +5,7 @@ namespace App\Livewire\Team;
 use Livewire\Component;
 use App\Models\Team;
 use App\Models\GameOption;
+use App\Models\Member;
 
 class Stats extends Component
 {
@@ -32,13 +33,15 @@ class Stats extends Component
             ->pluck('id');
         $gameOrder = $gameIds->flip();
 
-        $this->members = $this->team->players()
-            ->orderBy('name')
+        $this->members = $this->team->members()
+            ->whereIn("type", [Member::TYPE_PLAYER,Member::TYPE_SUB])
+            ->with('licensee')
             ->with(['gameOptions' => function ($query) use ($gameIds) {
                 $query->whereIn('game_id', $gameIds)
                     ->whereIn('game_option_id', $this->options->pluck('id'));
             }])
-            ->get();
+            ->get()
+            ->sortBy([["type"],["licensee.firstname"]]);
 
         $this->statistics = [];
         foreach ($this->members as $member) {

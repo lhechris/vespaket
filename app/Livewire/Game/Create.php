@@ -50,7 +50,12 @@ class Create extends Component
         foreach ($this->team->players as $player) {
             $game->members()->attach($player->id);
         }
-
+        foreach ($this->team->otms as $otm) {
+            $game->members()->attach($otm->id);
+        }
+        foreach ($this->team->subs as $player) {
+            $game->members()->attach($player->id,["called"=>false]);
+        }
         return redirect(route('game.edit',[$game->id]));
     }
 

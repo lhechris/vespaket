@@ -22,10 +22,9 @@ class Team extends Model
         return $this->owners()->first();
     }
     
-    public function members()
+    public function members() 
     {
-        return $this->belongsToMany(Member::class)
-            ->withTimestamps();
+        return $this->hasMany(Member::class);
     }
 
     public function games()
@@ -66,6 +65,10 @@ class Team extends Model
     public function otms()
     {
         return $this->members()->where('type', Member::TYPE_OTM);
+    }
+    public function subs()
+    {
+        return $this->members()->where('type', Member::TYPE_SUB);
     }
 
     public function isU11()

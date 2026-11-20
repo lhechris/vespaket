@@ -65,14 +65,22 @@
                 <thead class="bg-black border-b border-default">
                     <tr>
                         <th scope="col" class="px-2 sm:px-6 py-3 font-bold">{{ __('vespaket.first_name') }}</th>
+                        <th scope="col" class="px-2 sm:px-6 py-3 font-bold">{{ __('vespaket.call_up') }}</th>
                         <th scope="col" class="px-2 sm:px-6 py-3 font-bold">{{ __('vespaket.availability') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($members as $member)
-                    @if($member->isplayer())
+                    @if($member->isplayer()|| $member->issub())
                     <tr class="odd:bg-gray-700 even:bg-gray-800 border-b border-default">
-                        <td class="px-2 sm:px-6 py-4">{{ $member->prenom }}</td>
+                        <td class="px-2 sm:px-6 py-4">{{ $member->licensee->firstname }}</td>
+                        <td class="px-2 sm:px-6 py-4 text-black">
+                            <button wire:click="toggleCalled({{ $member->id }})"
+                                class="px-3 py-1 rounded font-semibold
+                                {{ $member->pivot->called ? 'bg-green-500' : 'bg-red-500' }}">
+                                {{ $member->pivot->called ? __('Yes') : __('No') }}
+                            </button>
+                        </td>
                         <td class="px-2 sm:px-6 py-4 text-black">
                             <button wire:click="setAvailability({{ $member->id }}, 'yes')"
                                 class="px-1 py-1 rounded {{ $member->pivot->availability === 'yes' ? 'bg-green-500 text-white' : 'bg-gray-200' }}">

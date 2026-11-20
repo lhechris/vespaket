@@ -16,7 +16,7 @@ class Event extends Model
     public function members()
     {
         return $this->belongsToMany(Member::class)
-            ->withPivot('availability')
+            ->withPivot('availability','called')
             ->withTimestamps();
     }
 

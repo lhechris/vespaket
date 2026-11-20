@@ -38,8 +38,8 @@ class WebPushNotificationTest extends TestCase
         $memberMaybe = Member::factory()->create();
         $memberYes = Member::factory()->create();
 
-        $memberMaybe->users()->attach($userMaybe->id, ['relation' => 'player']);
-        $memberYes->users()->attach($userYes->id, ['relation' => 'player']);
+        $userMaybe->licensees()->attach($memberMaybe->licensee);
+        $userYes->licensees()->attach($memberYes->licensee);
 
         $game->members()->attach($memberMaybe->id, ['availability' => 'maybe']);
         $game->members()->attach($memberYes->id, ['availability' => 'yes']);
@@ -63,7 +63,7 @@ class WebPushNotificationTest extends TestCase
         $user = User::factory()->create();
         $member = Member::factory()->create();
 
-        $member->users()->attach($user->id, ['relation' => 'player']);
+        $user->licensees()->attach($member->licensee);
         $game->members()->attach($member->id, ['availability' => null]);
 
         $component = new Edit();

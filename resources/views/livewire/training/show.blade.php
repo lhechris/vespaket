@@ -61,7 +61,7 @@
                 <tbody>
                     @foreach($members as $member)
                     <tr class="odd:bg-gray-700 even:bg-gray-800 border-b border-default">
-                        <td class="px-6 py-4">{{ $member->prenom }}</td>
+                        <td class="px-6 py-4">{{ $member->licensee->firstname }}</td>
 
                         <td class="px-6 py-4 text-black">
                             <button wire:click="setPresence({{ $member->id }}, 'yes')"

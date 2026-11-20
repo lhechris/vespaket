@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\User\Accept;
 use App\Models\Invitation;
+use App\Models\Licensee;
 use App\Models\Member;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,9 +16,9 @@ class InvitationAcceptanceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_invited_user_can_complete_account_without_changing_attached_members(): void
+    public function test_invited_user_can_complete_account_without_changing_attached_licensees(): void
     {
-        [$invitation, $invitedUser, $member, $otherMember] = $this->createInvitationWithMembers();
+        [$invitation, $invitedUser, $licensee, $otherLicensee] = $this->createInvitationWithLicensees();
 
         Livewire::test(Accept::class, ['token' => $invitation->token])
             ->set('firstname', 'Alice')
@@ -36,21 +37,24 @@ class InvitationAcceptanceTest extends TestCase
         $this->assertSame('parent@example.test', $invitedUser->email);
         $this->assertTrue(Hash::check('StrongPassword123!', $invitedUser->password));
         $this->assertDatabaseMissing('invitations', ['id' => $invitation->id]);
-        $this->assertDatabaseHas('member_user', [
+        $this->assertDatabaseHas('licensee_user', [
             'user_id' => $invitedUser->id,
-            'member_id' => $member->id,
-            'relation' => 'parent',
+            'licensee_id' => $licensee->id,
         ]);
-        $this->assertDatabaseMissing('member_user', [
+        $this->assertDatabaseMissing('licensee_user', [
             'user_id' => $invitedUser->id,
-            'member_id' => $otherMember->id,
+            'licensee_id' => $otherLicensee->id,
+        ]);
+        $this->assertDatabaseHas('members', [
+            'licensee_id' => $licensee->id,
+            'type' => Member::TYPE_PLAYER,
         ]);
         $this->assertAuthenticatedAs($invitedUser);
     }
 
     public function test_invitation_acceptance_requires_registration_fields(): void
     {
-        [$invitation] = $this->createInvitationWithMembers();
+        [$invitation] = $this->createInvitationWithLicensees();
 
         Livewire::test(Accept::class, ['token' => $invitation->token])
             ->call('store')
@@ -64,7 +68,7 @@ class InvitationAcceptanceTest extends TestCase
         $this->assertDatabaseHas('invitations', ['id' => $invitation->id]);
     }
 
-    private function createInvitationWithMembers(): array
+    private function createInvitationWithLicensees(): array
     {
         $creator = User::factory()->create(['role' => User::ROLE_COACH]);
         $invitedUser = User::factory()->create([
@@ -73,9 +77,17 @@ class InvitationAcceptanceTest extends TestCase
             'email' => 'invited@example.test',
             'role' => User::ROLE_PARENT,
         ]);
-        $member = Member::factory()->create(['prenom' => 'Enfant lié']);
-        $otherMember = Member::factory()->create(['prenom' => 'Autre enfant']);
-        $invitedUser->members()->attach($member->id, ['relation' => 'parent']);
+        $licensee = Licensee::create([
+            'firstname' => 'Enfant lié',
+            'name' => 'Dupont',
+        ]);
+        $otherLicensee = Licensee::create([
+            'firstname' => 'Autre enfant',
+            'name' => 'Martin',
+        ]);
+        $licensee->members()->create(['type' => Member::TYPE_PLAYER]);
+        $otherLicensee->members()->create(['type' => Member::TYPE_PLAYER]);
+        $invitedUser->licensees()->attach($licensee);
 
         $invitation = Invitation::create([
             'email' => 'invited@example.test',
@@ -85,6 +97,6 @@ class InvitationAcceptanceTest extends TestCase
             'expires_at' => now()->addDays(7),
         ]);
 
-        return [$invitation, $invitedUser, $member, $otherMember];
+        return [$invitation, $invitedUser, $licensee, $otherLicensee];
     }
 }

@@ -22,7 +22,14 @@ class ChampionshipServiceTest extends TestCase
             'name' => 'Championnat Desimone',
             'season' => '2026-2027',
             'source' => 'desimone',
-            'external_id' => 'pool-1',
+            'external_id' => 'competition-1',
+            'pool_external_id' => 'pool-1',
+        ]);
+        ChampionshipTeam::create([
+            'championship_id' => $championship->id,
+            'name' => 'Équipe A',
+            'source' => 'desimone',
+            'external_id' => 'team-1',
         ]);
         $ranking = [[
             'id_engagement' => ['id' => 'team-1', 'nom' => 'Équipe A'],
@@ -71,7 +78,8 @@ class ChampionshipServiceTest extends TestCase
             'name' => 'Championnat Desimone',
             'season' => '2026-2027',
             'source' => 'desimone',
-            'external_id' => '200000003063776',
+            'external_id' => '200000002898776',
+            'pool_external_id' => '200000003063776',
         ]);
 
         $matches = [
@@ -80,9 +88,14 @@ class ChampionshipServiceTest extends TestCase
             $this->desimoneMatch('match-3', '2', '60', '55'),
         ];
         Http::fake([
-            'ffbb-api.desimone.fr/api/v1/poule/200000003063776' => Http::response([
-                'id' => '200000003063776',
-                'rencontres' => $matches,
+            'ffbb-api.desimone.fr/api/v1/competition/200000002898776' => Http::response([
+                'id' => '200000002898776',
+                'phases' => [[
+                    'poules' => [[
+                        'id' => '200000003063776',
+                        'rencontres' => $matches,
+                    ]],
+                ]],
             ]),
             'ffbb-api.desimone.fr/api/v1/poule/200000003063776/classement' => Http::response([
                 'classement' => $this->desimoneRanking($matches),
@@ -127,12 +140,13 @@ class ChampionshipServiceTest extends TestCase
             'points' => 5,
         ]);
 
-        $this->assertSame(3, app(ChampionshipService::class)->refresh($championship->id));
+        $this->assertSame(3, app(ChampionshipService::class)->refresh($championship));
         $this->assertDatabaseCount('championship_gamedays', 2);
         $this->assertDatabaseCount('championship_games', 3);
         $this->assertDatabaseCount('championship_teams', 6);
         $this->assertDatabaseCount('championship_standing_snapshots', 1);
         $this->assertDatabaseCount('championship_standing_entries', 6);
+        Http::assertSentCount(4);
     }
 
     public function test_it_imports_matches_and_adds_missing_championship_teams(): void
@@ -141,14 +155,20 @@ class ChampionshipServiceTest extends TestCase
             'name' => 'Championnat Desimone',
             'season' => '2026-2027',
             'source' => 'desimone',
-            'external_id' => '200000003063776',
+            'external_id' => '200000002898776',
+            'pool_external_id' => '200000003063776',
         ]);
         $match = $this->desimoneMatch('match-1', '1', '59', '15');
 
         Http::fake([
-            'ffbb-api.desimone.fr/api/v1/poule/200000003063776' => Http::response([
-                'id' => '200000003063776',
-                'rencontres' => [$match],
+            'ffbb-api.desimone.fr/api/v1/competition/200000002898776' => Http::response([
+                'id' => '200000002898776',
+                'phases' => [[
+                    'poules' => [[
+                        'id' => '200000003063776',
+                        'rencontres' => [$match],
+                    ]],
+                ]],
             ]),
             'ffbb-api.desimone.fr/api/v1/poule/200000003063776/classement' => Http::response([
                 'classement' => [],
@@ -156,7 +176,7 @@ class ChampionshipServiceTest extends TestCase
         ]);
 
         $service = app(ChampionshipService::class);
-        $this->assertSame(1, $service->refresh($championship->id));
+        $this->assertSame(1, $service->refresh($championship));
         $this->assertDatabaseCount('championship_teams', 2);
         $this->assertDatabaseHas('championship_gamedays', [
             'championship_id' => $championship->id,
@@ -171,7 +191,7 @@ class ChampionshipServiceTest extends TestCase
             'status' => 'completed',
         ]);
 
-        $this->assertSame(1, $service->refresh($championship->id));
+        $this->assertSame(1, $service->refresh($championship));
         $this->assertDatabaseCount('championship_teams', 2);
         $this->assertDatabaseCount('championship_gamedays', 1);
         $this->assertDatabaseCount('championship_games', 1);
@@ -184,21 +204,27 @@ class ChampionshipServiceTest extends TestCase
             'name' => 'Championnat Desimone',
             'season' => '2026-2027',
             'source' => 'desimone',
-            'external_id' => '200000003063776',
+            'external_id' => '200000002898776',
+            'pool_external_id' => '200000003063776',
         ]);
         $match = $this->desimoneMatch('match-new', '1', 'None', 'None');
 
         Http::fake([
-            'ffbb-api.desimone.fr/api/v1/poule/200000003063776' => Http::response([
-                'id' => '200000003063776',
-                'rencontres' => [$match],
+            'ffbb-api.desimone.fr/api/v1/competition/200000002898776' => Http::response([
+                'id' => '200000002898776',
+                'phases' => [[
+                    'poules' => [[
+                        'id' => '200000003063776',
+                        'rencontres' => [$match],
+                    ]],
+                ]],
             ]),
             'ffbb-api.desimone.fr/api/v1/poule/200000003063776/classement' => Http::response([
                 'classement' => [],
             ]),
         ]);
 
-        $this->assertSame(1, app(ChampionshipService::class)->refresh($championship->id));
+        $this->assertSame(1, app(ChampionshipService::class)->refresh($championship));
 
         $this->assertDatabaseCount('championship_teams', 2);
         $this->assertDatabaseCount('championship_gamedays', 1);
@@ -206,7 +232,7 @@ class ChampionshipServiceTest extends TestCase
         $this->assertDatabaseCount('championship_standing_snapshots', 1);
         $this->assertDatabaseCount('championship_standing_entries', 0);
 
-        $this->assertSame(1, app(ChampionshipService::class)->refresh($championship->id));
+        $this->assertSame(1, app(ChampionshipService::class)->refresh($championship));
         $this->assertDatabaseCount('championship_teams', 2);
         $this->assertDatabaseCount('championship_games', 1);
         $this->assertDatabaseCount('championship_standing_entries', 0);
@@ -221,7 +247,8 @@ class ChampionshipServiceTest extends TestCase
                 'name' => 'Championnat Desimone',
                 'season' => '2026-2027',
                 'source' => 'desimone',
-                'external_id' => '200000003063776',
+                'external_id' => '200000002898776',
+                'pool_external_id' => '200000003063776',
             ]);
             $matchday = ChampionshipGamedays::create([
                 'championship_id' => $championship->id,
@@ -230,13 +257,22 @@ class ChampionshipServiceTest extends TestCase
                 'source' => 'desimone',
                 'external_id' => '200000003063776:1',
             ]);
+            $matches = [
+                $this->desimoneMatch('match-1', '1', '26', '50'),
+                $this->desimoneMatch('match-2', '1', '30', '40'),
+                $this->desimoneMatch('match-3', '2', '60', '55'),
+            ];
             $homeTeam = ChampionshipTeam::create([
                 'championship_id' => $championship->id,
-                'name' => 'Ancienne équipe locale',
+                'name' => $matches[0]['nomEquipe1'],
+                'source' => 'desimone',
+                'external_id' => $matches[0]['idEngagementEquipe1']['id'],
             ]);
             $awayTeam = ChampionshipTeam::create([
                 'championship_id' => $championship->id,
-                'name' => 'Ancienne équipe visiteuse',
+                'name' => $matches[0]['nomEquipe2'],
+                'source' => 'desimone',
+                'external_id' => $matches[0]['idEngagementEquipe2']['id'],
             ]);
             ChampionshipGames::create([
                 'matchday_id' => $matchday->id,
@@ -247,15 +283,15 @@ class ChampionshipServiceTest extends TestCase
                 'external_id' => 'match-1',
             ]);
 
-            $matches = [
-                $this->desimoneMatch('match-1', '1', '26', '50'),
-                $this->desimoneMatch('match-2', '1', '30', '40'),
-                $this->desimoneMatch('match-3', '2', '60', '55'),
-            ];
             Http::fake([
-                'ffbb-api.desimone.fr/api/v1/poule/200000003063776' => Http::response([
-                    'id' => '200000003063776',
-                    'rencontres' => $matches,
+                'ffbb-api.desimone.fr/api/v1/competition/200000002898776' => Http::response([
+                    'id' => '200000002898776',
+                    'phases' => [[
+                        'poules' => [[
+                            'id' => '200000003063776',
+                            'rencontres' => $matches,
+                        ]],
+                    ]],
                 ]),
                 'ffbb-api.desimone.fr/api/v1/poule/200000003063776/classement' => Http::response([
                     'classement' => $this->desimoneRanking($matches),
@@ -298,6 +334,8 @@ class ChampionshipServiceTest extends TestCase
             'joue' => $homeScore === 'None' ? 0 : 1,
             'nomEquipe1' => 'Équipe domicile '.$id,
             'nomEquipe2' => 'Équipe extérieure '.$id,
+            'idEngagementEquipe1' => ['id' => 'home-'.$id],
+            'idEngagementEquipe2' => ['id' => 'away-'.$id],
         ];
     }
 
@@ -313,11 +351,12 @@ class ChampionshipServiceTest extends TestCase
         foreach ($matches as $match) {
             foreach ([1, 2] as $teamNumber) {
                 $name = $match['nomEquipe'.$teamNumber];
-                $teamIds[$name] ??= 'team-'.count($teamIds);
+                $id = $match['idEngagementEquipe'.$teamNumber]['id'];
+                $teamIds[$id] ??= $name;
             }
         }
 
-        foreach ($teamIds as $name => $id) {
+        foreach ($teamIds as $id => $name) {
             $ranking[] = [
                 'id_engagement' => ['id' => $id, 'nom' => $name],
                 'position' => count($ranking) + 1,

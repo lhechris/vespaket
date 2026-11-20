@@ -33,27 +33,31 @@
             <div class="bg-slate-800 p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-4 text-yellow-300">
                 <div class="flex items-center justify-between gap-4">
                     <div>
-                        <p class="text-lg font-semibold text-yellow-200">{{ $member->prenom }}</p>
+                        <p class="text-lg font-semibold text-yellow-200">{{ $member->licensee->firstname }}</p>
                     </div>
                     @if($member->pivot->selected)
                         <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-semibold">{{ __('vespaket.selected') }}</span>
                     @endif
                 </div>
 
-                <div class="flex flex-wrap gap-2">
-                    <button wire:click="setAvailability({{ $member->id }}, 'yes')"
-                        class="px-3 py-2 rounded-xl text-sm font-medium transition-colors {{ $member->pivot->availability === 'yes' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
-                        {{__('vespaket.present')}}
-                    </button>
-                    <button wire:click="setAvailability({{ $member->id }}, 'no')"
-                        class="px-3 py-2 rounded-xl text-sm font-medium transition-colors {{ $member->pivot->availability === 'no' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
-                        {{ __('vespaket.absent') }}
-                    </button>
-                    <button wire:click="setAvailability({{ $member->id }}, 'maybe')"
-                        class="px-3 py-2 rounded-xl text-sm font-medium transition-colors {{ $member->pivot->availability === 'maybe' ? 'bg-yellow-400 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
-                        {{ __('vespaket.maybe') }}
-                    </button>
-                </div>
+                @if($members->contains('id', $member->id))
+                    <div class="flex flex-wrap gap-2">
+                        <button wire:click="setAvailability({{ $member->id }}, 'yes')"
+                            class="px-3 py-2 rounded-xl text-sm font-medium transition-colors {{ $member->pivot->availability === 'yes' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                            {{__('vespaket.present')}}
+                        </button>
+                        <button wire:click="setAvailability({{ $member->id }}, 'no')"
+                            class="px-3 py-2 rounded-xl text-sm font-medium transition-colors {{ $member->pivot->availability === 'no' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                            {{ __('vespaket.absent') }}
+                        </button>
+                        <button wire:click="setAvailability({{ $member->id }}, 'maybe')"
+                            class="px-3 py-2 rounded-xl text-sm font-medium transition-colors {{ $member->pivot->availability === 'maybe' ? 'bg-yellow-400 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                            {{ __('vespaket.maybe') }}
+                        </button>
+                    </div>
+                @elseif($member->pivot->availability)
+                    <p>{{ __('vespaket.availability') }} : {{ __('vespaket.'.$member->pivot->availability) }}</p>
+                @endif
             </div>
         @endforeach
     </div>
@@ -73,9 +77,8 @@
             </thead>
             <tbody>
                 @foreach($players as $player)
-                    @if($player->pivot->selected)
                     <tr class="odd:bg-gray-700 even:bg-gray-800 border-b border-default">
-                        <td class="px-2 sm:px-6 py-4">{{ $player->prenom }}</td>
+                        <td class="px-2 sm:px-6 py-4">{{ $player->licensee->firstname }}</td>
                         @foreach($options as $option)
                             @if( $option->isDisplayTable())
                                 @php
@@ -98,7 +101,6 @@
                             @endif
                         @endforeach
                     </tr>
-                    @endif
                 @endforeach
             </tbody>
         </table>

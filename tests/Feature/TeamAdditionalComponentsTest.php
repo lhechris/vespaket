@@ -60,7 +60,9 @@ class TeamAdditionalComponentsTest extends TestCase
 
     public function test_events_lists_events_and_identifies_the_next_event(): void
     {
+        $owner = User::factory()->create();
         $team = Team::factory()->create();
+        $team->owners()->attach($owner);
         Event::create([
             'team_id' => $team->id,
             'titre' => 'Événement passé',
@@ -77,7 +79,8 @@ class TeamAdditionalComponentsTest extends TestCase
             'date' => now()->addDays(2),
         ]);
 
-        Livewire::test(Events::class, ['team' => $team])
+        Livewire::actingAs($owner)
+            ->test(Events::class, ['team' => $team])
             ->assertSet('nextEventId', $nextEvent->id)
             ->assertSee('Événement passé')
             ->assertSee('Prochain événement')
@@ -98,9 +101,18 @@ class TeamAdditionalComponentsTest extends TestCase
         Livewire::test(Owners::class, ['team' => $team])
             ->set('search', 'Taylor')
             ->assertSee('Taylor (Example)')
-            ->call('addMember', $newOwner->id)
-            ->assertSee('Taylor')
-            ->call('removeMember', $newOwner->id);
+            ->call('addOwner', $newOwner->id)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('team_owner', [
+            'team_id' => $team->id,
+            'user_id' => $newOwner->id,
+        ]);
+
+        Livewire::actingAs($owner)
+            ->test(Owners::class, ['team' => $team])
+            ->call('removeOwner', $newOwner->id)
+            ->assertHasNoErrors();
 
         $this->assertDatabaseMissing('team_owner', [
             'team_id' => $team->id,
@@ -118,8 +130,8 @@ class TeamAdditionalComponentsTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user);
 
-        Livewire::test(Owners::class, ['team' => $team])
-            ->call('addMember', $user->id)
+        Livewire::actingAs($user)
+            ->test(Owners::class, ['team' => $team])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('team_owner', [
@@ -130,19 +142,21 @@ class TeamAdditionalComponentsTest extends TestCase
 
     public function test_selections_toggle_player_selection_for_a_game(): void
     {
+        $owner = User::factory()->create();
         $team = Team::factory()->create();
+        $team->owners()->attach($owner);
         $game = Game::factory()->create([
             'team_id' => $team->id,
             'date' => now()->addDay(),
         ]);
-        $player = Member::factory()->create(['type' => Member::TYPE_PLAYER]);
-        $team->members()->attach($player->id);
+        $player = Member::factory()->create(['type' => Member::TYPE_PLAYER, 'team_id' => $team->id]);
         $game->members()->attach($player->id, [
             'availability' => 'yes',
             'selected' => false,
         ]);
 
-        Livewire::test(Selections::class, ['team' => $team])
+        Livewire::actingAs($owner)
+            ->test(Selections::class, ['team' => $team])
             ->call('toggleSelection', $game->id, $player->id);
 
         $this->assertDatabaseHas('game_member', [
@@ -151,7 +165,8 @@ class TeamAdditionalComponentsTest extends TestCase
             'selected' => true,
         ]);
 
-        Livewire::test(Selections::class, ['team' => $team])
+        Livewire::actingAs($owner)
+            ->test(Selections::class, ['team' => $team])
             ->call('toggleSelection', $game->id, $player->id);
 
         $this->assertDatabaseHas('game_member', [

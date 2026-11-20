@@ -30,7 +30,9 @@ class Edit extends Component
     }
 
     private function loaddata() {
-        $this->members = $this->event->members()->get();
+        $this->members = $this->event->members()
+                            ->get()
+                            ->sortBy([["type"],["licensee.firstname"]]);
     }
 
 
@@ -46,6 +48,18 @@ class Edit extends Component
             $this->eventDescription = $this->event->description ?? '';           
         }
         $this->loaddata();
+    }
+
+    public function toggleCalled($memberId)
+    {
+        $pivot = $this->event->members()->find($memberId)->pivot;
+
+        $this->event->members()->updateExistingPivot($memberId, [
+            'called' => !$pivot->called
+        ]);
+
+        $this->loaddata();
+
     }
 
     public function updateEvent()

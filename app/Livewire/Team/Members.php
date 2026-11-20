@@ -12,6 +12,7 @@ class Members extends Component
     public $coaches;
     public $otms;
     public $owners;
+    public $subs;
     public ?int $editingMemberId = null;
     public array $editingMember = [
         'prenom' => '',
@@ -34,6 +35,7 @@ class Members extends Component
     private function loadMembers(): void
     {
         $this->players = $this->team->members()
+                    ->with('licensee')
                     ->withCount(['games as games_count' => function ($query) {
                         $query->where('game_member.selected', 1);
                     }])
@@ -44,11 +46,25 @@ class Members extends Component
                     ->get();
 
         $this->otms = $this->team->members()
+                    ->with('licensee')
                     ->withCount(['games as games_count' => function ($query) {
                         $query->where('game_member.selected', 1);
                     }])
                     ->where('type',\App\Models\Member::TYPE_OTM)
-                    ->get();    }
+                    ->get();    
+
+        $this->subs = $this->team->members()
+                    ->with('licensee')
+                    ->withCount(['games as games_count' => function ($query) {
+                        $query->where('game_member.selected', 1);
+                    }])
+                    ->withCount(['trainings as trainings_count' => function ($query) {
+                        $query->where('member_training.present', 'yes');
+                    }])
+                    ->where('type',\App\Models\Member::TYPE_SUB)
+                    ->get();
+    }
+
 
 
     public function editMember(int $memberId): void
@@ -57,9 +73,9 @@ class Members extends Component
 
         $this->editingMemberId = $member->id;
         $this->editingMember = [
-            'name' => $member->name ?? '',
-            'prenom' => $member->prenom ?? '',
-            'licence' => $member->licence ?? '',
+            'name' => $member->licensee?->name ?? '',
+            'prenom' => $member->licensee?->firstname ?? '',
+            'licence' => $member->licensee?->licence ?? '',
             'numero' => $member->numero ?? '',
         ];
         $this->resetValidation();
@@ -73,11 +89,18 @@ class Members extends Component
             'editingMember.prenom' => ['nullable', 'string'],
             'editingMember.name' => ['nullable', 'string'],
             'editingMember.licence' => ['nullable', 'string'],
-            'editingMember.numero' => ['nullable', 'string'],
+            'editingMember.numero' => ['nullable'],
         ]);
 
+        $membersValues=['numero' => $this->editingMember['numero']];
+        $licenseeValues=[
+            'firstname' => $this->editingMember['prenom'],
+            'licence' => $this->editingMember['licence']
+        ];
+
         $member = $this->team->members()->whereKey($this->editingMemberId)->firstOrFail();
-        $member->update($this->editingMember);
+        $member->update($membersValues);
+        $member->licensee->update($licenseeValues);
 
         $this->editingMemberId = null;
         $this->loadMembers();

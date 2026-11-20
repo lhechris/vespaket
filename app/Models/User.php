@@ -48,13 +48,12 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    public function members()
+    public function licensees()
     {
-        return $this->belongsToMany(Member::class)
-            ->withPivot('relation')
+        return $this->belongsToMany(Licensee::class)
             ->withTimestamps();
     }
-    
+  
     public function invitations()
     {
         return $this->hasMany(Invitation::class);
