@@ -10,10 +10,13 @@ class Form extends Component
 {
     public ?Place $place = null;
 
-    public string $name = '';
-    public string $address = '';
-    public ?float $lat = null;
-    public ?float $lng = null;
+    //on change le nom des attribut pour eviter une demande de sauvegarde des addresse par le navigateur
+    public string $attrad = '';
+    public ?float $attrlat = null;
+    public ?float $attrlng = null;
+    public string $attrlab = '';
+    public string $attrcp = '';
+    public string $attrci = '';
 
     public bool $isGeocoding = false;
     public bool $geocodeSuccess = false;
@@ -22,10 +25,12 @@ class Form extends Component
     protected function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
-            'lat' => 'required|numeric|between:-90,90',
-            'lng' => 'required|numeric|between:-180,180',
+            'attrlab' => 'required|string|max:255',
+            'attrci' => 'required|string|max:255',
+            'attrcp'  => 'string|max:5',
+            'attrad' => 'string|max:255',
+            'attrlat' => 'numeric|between:-90,90',
+            'attrlng' => 'numeric|between:-180,180',
         ];
     }
 
@@ -43,18 +48,22 @@ class Form extends Component
     {
         if (! $place || ! $place->exists) {
             $this->place = null;
-            $this->name = '';
-            $this->address = '';
-            $this->lat = null;
-            $this->lng = null;
+            $this->attrad = '';
+            $this->attrlat = null;
+            $this->attrlng = null;
+            $this->attrci = '';
+            $this->attrlab = '';
+            $this->attrcp = '';
             return;
         }
 
         $this->place = $place;
-        $this->name = $place->name;
-        $this->address = $place->address;
-        $this->lat = $place->lat;
-        $this->lng = $place->lng;
+        $this->attrad = $place->address;
+        $this->attrlat = $place->lat;
+        $this->attrlng = $place->lng;
+        $this->attrci = $place->city;
+        $this->attrlab = $place->label;
+        $this->attrcp = $place->cp;
     }
 
     public function geocode(): void
@@ -62,8 +71,8 @@ class Form extends Component
         $this->geocodeError = null;
         $this->geocodeSuccess = false;
 
-        $this->validateOnly('address', [
-            'address' => 'required|string|max:255',
+        $this->validateOnly('attrad', [
+            'attrad' => 'required|string|max:255',
         ]);
 
         $this->isGeocoding = true;
@@ -73,7 +82,7 @@ class Form extends Component
                 // Nominatim exige un User-Agent identifiable (usage policy)
                 'User-Agent' => 'ASLabartheBasket/1.0 (lhechris@gmail.com)',
             ])->get('https://nominatim.openstreetmap.org/search', [
-                'q' => $this->address,
+                'q' => $this->attrad." ".$this->attrcp." ".$this->attrci,
                 'format' => 'json',
                 'limit' => 1,
                 'addressdetails' => 0,
@@ -91,8 +100,8 @@ class Form extends Component
                 return;
             }
 
-            $this->lat = (float) $results[0]['lat'];
-            $this->lng = (float) $results[0]['lon'];
+            $this->attrlat = (float) $results[0]['lat'];
+            $this->attrlng = (float) $results[0]['lon'];
             $this->geocodeSuccess = true;
         } catch (\Exception $e) {
             $this->geocodeError = "Impossible de contacter le service de géocodage.".$e;
@@ -106,10 +115,12 @@ class Form extends Component
         $this->validate();
 
         $data = [
-            'name' => $this->name,
-            'address' => $this->address,
-            'lat' => $this->lat,
-            'lng' => $this->lng,
+            'address' => $this->attrad,
+            'lat' => $this->attrlat,
+            'lng' => $this->attrlng,
+            'label' => $this->attrlab,
+            'city' => $this->attrci,
+            'cp' => $this->attrcp,
         ];
 
         if ($this->place) {

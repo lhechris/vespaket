@@ -156,7 +156,7 @@
                                 </span>
                             </div>
                             @if($game->location)
-                                <p class="mt-3 text-center text-xs text-slate-400">{{ $game->location }}</p>
+                                <p class="mt-3 text-center text-xs text-slate-400">{{ $game->locationStr() }}</p>
                             @endif
                         </article>
                     @endforeach

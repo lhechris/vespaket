@@ -70,7 +70,7 @@ class TeamAdditionalComponentsTest extends TestCase
         ]);
         $nextEvent = Event::create([
             'team_id' => $team->id,
-            'titre' => 'Prochain événement',
+            'titre' => "L'événement de l'équipe",
             'date' => now()->addDay(),
         ]);
         Event::create([
@@ -83,7 +83,7 @@ class TeamAdditionalComponentsTest extends TestCase
             ->test(Events::class, ['team' => $team])
             ->assertSet('nextEventId', $nextEvent->id)
             ->assertSee('Événement passé')
-            ->assertSee('Prochain événement')
+            ->assertSee("L'événement de l'équipe")
             ->assertSee('Événement suivant');
     }
 

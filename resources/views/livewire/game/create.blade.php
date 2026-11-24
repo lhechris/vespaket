@@ -7,10 +7,16 @@
     <form wire:submit="save" class="bg-white p-4 rounded-xl shadow space-y-3">
 
         <div>
-            <x-input-label for="titre" :value="__('vespaket.title')" />
-            <x-text-input wire:model="titre" id="titre" name="titre" type="text" class="mt-1 block w-full" required autofocus autocomplete="titre" />
-            <x-input-error class="mt-2" :messages="$errors->get('titre')" />
+            <x-input-label for="team_home" :value="__('vespaket.title')" />
+            <x-text-input wire:model="team_home" id="team_home" name="team_home" type="text" class="mt-1 block w-full" required autofocus autocomplete="Locaux" />
+            <x-input-error class="mt-2" :messages="$errors->get('team_home')" />
         </div>
+        <div>
+            <x-input-label for="team_away" :value="__('vespaket.title')" />
+            <x-text-input wire:model="team_away" id="team_away" name="team_away" type="text" class="mt-1 block w-full" required autofocus autocomplete="Visiteurs" />
+            <x-input-error class="mt-2" :messages="$errors->get('team_away')" />
+        </div>
+
 
         <div>
             <x-input-label for="date" :value="__('vespaket.match_date')" />
@@ -29,7 +35,7 @@
             <select wire:model="place_id" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
                 <option value="">-- {{ __('vespaket.select_sport_hall') }} --</option>
                 @foreach($places as $place)
-                    <option value="{{ $place->id }}">{{ $place->name }} {{ $place->address ? '— ' . $place->address : '' }}</option>
+                    <option value="{{ $place->id }}">{{ $place->city }}, {{ $place->libelle }}</option>
                 @endforeach
             </select>
         </div>

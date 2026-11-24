@@ -3,7 +3,7 @@
     <!-- HEADER -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">{{ $game->titre }}</h1>
+            <h1 class="text-3xl font-bold text-gray-900">{{ $game->team_home }} - {{ $game->team_away }}</h1>
             <p class="mt-2 text-sm text-gray-600">
                 {{ $game->formatdate() }}
             </p>
@@ -12,7 +12,10 @@
                 <div class="bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-700 text-yellow-300">
                     <p class="text-xs uppercase tracking-[0.16em] font-semibold text-yellow-200">{{ __('vespaket.location') }}</p>
                     <div class="flex gap-2" >
-                        <p class="mt-2 text-base font-semibold">{{ $game->place->address }}</p>
+                        <div>
+                            <p class="mt-2 text-base font-semibold">{{ $game->place->address }}</p>
+                            <p class="mt-2 text-base font-semibold">{{ $game->place->cp }} {{ $game->place->city }}</p>
+                        </div>
                         <livewire:itineraire
                                 :lat="$game->place->lat"
                                 :lng="$game->place->lng"
@@ -42,6 +45,7 @@
 
                 @if($members->contains('id', $member->id))
                     <div class="flex flex-wrap gap-2">
+                        @if($game->isScheduled())
                         <button wire:click="setAvailability({{ $member->id }}, 'yes')"
                             class="px-3 py-2 rounded-xl text-sm font-medium transition-colors {{ $member->pivot->availability === 'yes' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
                             {{__('vespaket.present')}}
@@ -54,6 +58,13 @@
                             class="px-3 py-2 rounded-xl text-sm font-medium transition-colors {{ $member->pivot->availability === 'maybe' ? 'bg-yellow-400 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
                             {{ __('vespaket.maybe') }}
                         </button>
+                        @else
+                            @if( $member->pivot->availability === 'yes') 
+                            <p class="px-3 py-2 rounded-xl text-sm font-medium bg-green-500 text-white">{{__('vespaket.present')}}<p>
+                            @else
+                            <p class="px-3 py-2 rounded-xl text-sm font-medium bg-red-500 text-white">{{ __('vespaket.absent') }}</p>
+                            @endif
+                        @endif
                     </div>
                 @elseif($member->pivot->availability)
                     <p>{{ __('vespaket.availability') }} : {{ __('vespaket.'.$member->pivot->availability) }}</p>
@@ -89,7 +100,7 @@
                                 @endphp
                                 <td class="px-2 sm:px-6 py-4">
                                     
-                                    @if($members->contains('id',$player->id) && ($option->isDisplayTableAllEditable()))
+                                    @if($members->contains('id',$player->id) && ($option->isDisplayTableAllEditable()) && ($game->isScheduled()))
                                     <x-game-member-option-cell :member="$player" :option="$option" :value="$memberOption?->value" />
                                     @elseif ($option->type === \App\Models\GameOption::TYPE_CHECKBOX)
                                     {{ $memberOption?->value === 'yes'?'✅​':''}}

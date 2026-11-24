@@ -68,7 +68,7 @@ class ChampionshipService
             $roundNumber = filter_var($match['numeroJournee'], FILTER_VALIDATE_INT);
             if ($roundNumber === false || $roundNumber < 1 || $roundNumber > 65535) {
                 throw new UnexpectedValueException('Une rencontre Desimone contient un numéro de journée invalide.');
-            }
+            }            
 
             $matchday = ChampionshipGamedays::updateOrCreate(
                 [
@@ -111,6 +111,9 @@ class ChampionshipService
                 ? (int) $match['resultatEquipe2']
                 : null;
             $externalId = (string) ($match['id'] ?? $match['numero'] ?? '');
+
+            $location = "JSON:".json_encode($match["salle"]);
+
             if ($externalId === '') {
                 throw new UnexpectedValueException('Une rencontre Desimone ne contient pas d’identifiant.');
             }
@@ -132,6 +135,7 @@ class ChampionshipService
                     'status' => (int) ($match['joue'] ?? 0) === 1 && $score1 !== null && $score2 !== null
                         ? 'completed'
                         : 'scheduled',
+                    'location' => $location,
                 ]
             );
         }

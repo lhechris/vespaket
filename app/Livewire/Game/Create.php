@@ -12,10 +12,12 @@ class Create extends Component
     public Team $team;
 
     public $date;
-    public $titre;
-    public $location;
+    public $team_home;
+    public $team_away;
     public $rendezvous;
     public $score;
+    public $score_home;
+    public $score_away;
     public $commentaire;
     public $place_id;
     public $numero;
@@ -31,17 +33,21 @@ class Create extends Component
     {
         $this->validate([
             'date' => "required",
-            'titre' => 'required',
-            'rendezvous' => 'required']);
+            'team_home'  => 'required',
+            'team_away'  => 'required',
+            'rendezvous' => 'string',
+            'score_home' => 'integer',
+            'score_away' => 'integer']);
 
         $game = Game::create([
             'team_id' => $this->team->id,
             'place_id' => $this->place_id,
             'date' => $this->date,
-            'location' => $this->location,
-            'titre' => $this->titre,
+            'team_home' => $this->team_home,
+            'team_away' => $this->team_away,
             'rendezvous' => $this->rendezvous,
-            'score' => $this->score,
+            'score_home' => $this->score_home,
+            'score_away' => $this->score_away,
             'commentaire' => $this->commentaire,
             'numero' => $this->numero
         ]);

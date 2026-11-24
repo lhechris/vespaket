@@ -32,4 +32,13 @@ class ChampionshipGames extends Model
     {
         return $this->belongsTo(ChampionshipTeam::class, 'away_team_id');
     }
+
+    public function locationStr() {
+        $ret=$this->location;
+        if ($this->location && (substr($this->location,0,5) === 'JSON:')) {
+            $j = json_decode(substr($this->location,5));
+            $ret = $j->libelle;            
+        }
+        return $ret;
+    }    
 }

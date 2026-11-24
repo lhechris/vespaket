@@ -9,7 +9,7 @@ class Game extends Model
 {
     use HasFactory;
     
-    protected $fillable = ['team_id','place_id', 'date', 'location','rendezvous','numero','titre','score','commentaire','whatsapp'];
+    protected $fillable = ['team_id','place_id', 'date', 'rendezvous','numero','team_home','team_away','score_home','score_away','commentaire','whatsapp'];
 
     public function team()
     {
@@ -41,10 +41,25 @@ class Game extends Model
     }
 
     public function formatdate() {
-        return  \Carbon\Carbon::parse($this->date)->translatedFormat('d F Y à H:i');
+        return  \Carbon\Carbon::parse($this->date)->translatedFormat('d F à H:i');
     }
 
     public function isDomicile() {
-        return str_starts_with(strtolower($this->titre),'aslb');
+        return $this->team_home == $this->team->name;
     }
+
+    public function score() {
+        if ($this->score_home && $this->score_away) {
+            return $this->score_home."/".$this->score_away;
+        }
+    }
+    public function isVictory() {
+        return (($this->isDomicile() && $this->score_home > $this->score_away)
+                ||(!$this->isDomicile() && $this->score_home < $this->score_away));
+    }
+
+    public function isScheduled() {
+        return \Carbon\Carbon::parse($this->date)->greaterThanOrEqualTo(now());
+    }
+    
 }

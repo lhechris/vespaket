@@ -104,11 +104,11 @@
     @endif
 
     
-    <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800">
+    <div class="p-5 rounded-2xl ">
 @forelse($licensees as $licensee)
 @if($activeTab==$licensee->firstname)
 
-        <h2 class="text-white font-bold mb-4">
+        <h2 class="text-grey-900 font-bold mb-4">
             {{ __('vespaket.presence_of', ["name" => $licensee->firstname])  }}
         </h2>
         <x-cards-scroll nextElementId="{{ $licensee->nextActivityId }}">

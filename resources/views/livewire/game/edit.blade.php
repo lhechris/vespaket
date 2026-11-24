@@ -8,7 +8,11 @@
                 <div class="space-y-3 bg-white p-4 rounded-xl shadow mb-4">
                     <div>
                         <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.title') }}</label>
-                        <input type="text" wire:model="gameTitle" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
+                        <input type="text" wire:model="gameTeamHome" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.title') }}</label>
+                        <input type="text" wire:model="gameTeamAway" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.match_date') }}</label>
@@ -23,7 +27,7 @@
                         <select wire:model="gamePlaceId" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
                             <option value="">-- {{ __('vespaket.select_sport_hall') }} --</option>
                             @foreach($places as $place)
-                                <option value="{{ $place->id }}">{{ $place->name }} {{ $place->address ? '— ' . $place->address : '' }}</option>
+                                <option value="{{ $place->id }}">{{ $place->city }}, {{ $place->label }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -32,8 +36,14 @@
                         <input type="text" wire:model="gameRendezvous" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.score') }}</label>
-                        <input type="text" wire:model="gameScore" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
+                        <span>
+                            <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.score') }}</label>
+                            <input type="text" wire:model="gameScoreHome" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
+                        </span>
+                        <span>
+                            <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.score') }}</label>
+                            <input type="text" wire:model="gameScoreAway" class="w-full rounded border border-gray-300 px-3 py-2 text-black">
+                        </span>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700">{{ __('vespaket.match_comments') }}</label>
@@ -51,18 +61,20 @@
             @else
                 <h1 class="text-2xl font-bold text-gray-900">
                     <span class="text-lg">{{ $game->numero }}</span>
-                    <span>{{ $game->titre }}</span>
-                    <span>({{ $game->score}})</span>
+                    <span>{{ $game->team_home }} - {{ $game->team_away }}</span>
+                    @if ($game->score_home)
+                    <span>({{ $game->score_home }} - {{ $game->score_away }})</span>
+                    @endif
                 </h1>
 
                 <p class="text-gray-600"> {{ $game->formatdate() }} </p>
 
                 @if($game->place !==NULL)
-                <p class="text-gray-600">{{ $game->place->address }}</p>
+                <p class="text-gray-600">{{ $game->place->address }} {{ $game->place->cp }} {{ $game->place->city }}</p>
                 <livewire:itineraire
                         :lat="$game->place->lat"
                         :lng="$game->place->lng"
-                        :label="$game->place->name"/>
+                        :label="$game->place->label"/>
                 @endif
                 <p class="text-gray-900">
                     {{ __('vespaket.meet') }} : {{ $game->rendezvous }}

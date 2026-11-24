@@ -18,7 +18,7 @@
             <x-table.tr>
                 <x-table.td class="text-left">
                     <p class="hidden sm:block">{{ \Carbon\Carbon::parse($game->date)->format('d/m/Y') }}</p>
-                    <p class="hidden sm:block">{{ $game->titre }}</p>
+                    <p class="hidden sm:block">{{ $game->team_home }} - {{ $game->team_away }}</p>
                     <p class="sm:hidden">{{ \Carbon\Carbon::parse($game->date)->format('d/m') }}</p>
 
                 </x-table.td>

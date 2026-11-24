@@ -83,10 +83,12 @@ class ChampionshipServiceTest extends TestCase
         ]);
 
         $matches = [
-            $this->desimoneMatch('match-1', '1', '26', '50'),
-            $this->desimoneMatch('match-2', '1', 'None', 'None'),
-            $this->desimoneMatch('match-3', '2', '60', '55'),
+            $this->desimoneMatch('match-1', '1', '26', '50', null),
+            $this->desimoneMatch('match-2', '1', 'None', 'None',null),
+            $this->desimoneMatch('match-3', '2', '60', '55',null),
         ];
+
+
         Http::fake([
             'ffbb-api.desimone.fr/api/v1/competition/200000002898776' => Http::response([
                 'id' => '200000002898776',
@@ -158,7 +160,7 @@ class ChampionshipServiceTest extends TestCase
             'external_id' => '200000002898776',
             'pool_external_id' => '200000003063776',
         ]);
-        $match = $this->desimoneMatch('match-1', '1', '59', '15');
+        $match = $this->desimoneMatch('match-1', '1', '59', '15',null);
 
         Http::fake([
             'ffbb-api.desimone.fr/api/v1/competition/200000002898776' => Http::response([
@@ -207,7 +209,7 @@ class ChampionshipServiceTest extends TestCase
             'external_id' => '200000002898776',
             'pool_external_id' => '200000003063776',
         ]);
-        $match = $this->desimoneMatch('match-new', '1', 'None', 'None');
+        $match = $this->desimoneMatch('match-new', '1', 'None', 'None',null);
 
         Http::fake([
             'ffbb-api.desimone.fr/api/v1/competition/200000002898776' => Http::response([
@@ -258,9 +260,9 @@ class ChampionshipServiceTest extends TestCase
                 'external_id' => '200000003063776:1',
             ]);
             $matches = [
-                $this->desimoneMatch('match-1', '1', '26', '50'),
-                $this->desimoneMatch('match-2', '1', '30', '40'),
-                $this->desimoneMatch('match-3', '2', '60', '55'),
+                $this->desimoneMatch('match-1', '1', '26', '50',null),
+                $this->desimoneMatch('match-2', '1', '30', '40',null),
+                $this->desimoneMatch('match-3', '2', '60', '55',null),
             ];
             $homeTeam = ChampionshipTeam::create([
                 'championship_id' => $championship->id,
@@ -323,8 +325,20 @@ class ChampionshipServiceTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    private function desimoneMatch(string $id, string $round, string $homeScore, string $awayScore): array
+    private function desimoneMatch(string $id, string $round, string $homeScore, string $awayScore,?array $salle): array
     {
+        if (!$salle) {
+            $salle = $this->desimoneSalle(
+                fake()->randomNumber(5,false),
+                fake()->word(),
+                fake()->numerify('#####'),
+                fake()->words(3,true),
+                fake()->words(3,true),
+                fake()->randomFloat(12,43,45),
+                fake()->randomFloat(12,0,2),
+            );
+        }
+
         return [
             'id' => $id,
             'numeroJournee' => $round,
@@ -336,6 +350,7 @@ class ChampionshipServiceTest extends TestCase
             'nomEquipe2' => 'Équipe extérieure '.$id,
             'idEngagementEquipe1' => ['id' => 'home-'.$id],
             'idEngagementEquipe2' => ['id' => 'away-'.$id],
+            'salle' => $salle,
         ];
     }
 
@@ -370,5 +385,25 @@ class ChampionshipServiceTest extends TestCase
         }
 
         return $ranking;
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    private function desimoneSalle(string $id, string $city, string $cp, string $label, string $address, float $lat, float $lng): array
+    {
+        return [
+            "libelle" => $label,
+            "libelle2"=>"",
+            "adresse"=>$address,
+            "adresseComplement"=>"",
+            "commune" => [
+                "codePostal" => $cp,
+                "libelle" => $city
+            ],
+            "cartographie" => [
+                "latitude" => $lat,
+                "longitude" => $lng 
+            ],
+        ];
     }
 }

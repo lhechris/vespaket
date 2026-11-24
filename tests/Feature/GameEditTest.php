@@ -8,6 +8,7 @@ use App\Models\Game;
 use App\Models\GameMemberOption;
 use App\Models\GameOption;
 use App\Models\Member;
+use App\Models\Licensee;
 use App\Models\Place;
 use App\Models\Team;
 use App\Models\User;
@@ -102,7 +103,8 @@ class GameEditTest extends TestCase
         $user = User::factory()->create();
         $team = Team::factory()->create();
         $team->owners()->attach($user->id);
-        $member = Member::factory()->create();
+        $licensee = Licensee::factory()->create();
+        //$member = Member::factory()->create(["licensee_id" => $licensee->id, "type" => Member::TYPE_PLAYER]);
         $game = Game::factory()->create([
             'team_id' => $team->id,
             'date' => now()->addDay(),
@@ -111,13 +113,13 @@ class GameEditTest extends TestCase
         $this->actingAs($user);
 
         Livewire::test(ManageMembers::class, ['team' => $team])
-            ->call('addMember', $member->id)
-            ->call('addMember', $member->id);
+            ->call('addLicenseeMember', $licensee->id, Member::TYPE_PLAYER)
+            ->call('addLicenseeMember', $licensee->id, Member::TYPE_PLAYER);
 
         $this->assertDatabaseCount('game_member', 1);
         $this->assertDatabaseHas('game_member', [
             'game_id' => $game->id,
-            'member_id' => $member->id,
+            'member_id' => $licensee->members()->first()->id,
         ]);
     }
 
@@ -125,28 +127,34 @@ class GameEditTest extends TestCase
     {
         $team = Team::factory()->create();
         $place = Place::create([
-            'name' => 'Complexe sportif',
+            'label' => 'Complexe sportif',
+            'city' => 'Paris',
+            'cp' => '75000',
             'address' => '1 rue des tests',
             'lat' => 48.8566,
             'lng' => 2.3522,
         ]);
         $game = Game::factory()->create([
             'team_id' => $team->id,
-            'titre' => 'Ancien titre',
+            'team_home' => 'Old E1',
+            'team_away' => 'old E2',
             'date' => '2026-09-15 18:30:00',
-            'location' => 'Ancien lieu',
+            'place_id' => $place->id,
             'rendezvous' => '17h30',
-            'score' => '0-0',
+            'score_home' => '0',
+            'score_away' => '0',
             'commentaire' => 'Ancien commentaire',
             'numero' => 1,
         ]);
 
         Livewire::test(Edit::class, ['game' => $game])
-            ->set('gameTitle', 'Nouveau titre')
+            ->set('gameTeamHome', 'Nouveau E1')
+            ->set('gameTeamAway', 'Nouveau E2')
             ->set('gameDate', '2026-10-10T20:00')
             ->set('gamePlaceId', $place->id)
             ->set('gameRendezvous', '19h00')
-            ->set('gameScore', '2-1')
+            ->set('gameScoreHome', 2)
+            ->set('gameScoreAway', 5)
             ->set('gameCommentaire', 'Commentaire mis à jour')
             ->set('gameNumero', 12)
             ->call('updateGame')
@@ -154,12 +162,13 @@ class GameEditTest extends TestCase
 
         $this->assertDatabaseHas('games', [
             'id' => $game->id,
-            'titre' => 'Nouveau titre',
+            'team_home' => 'Nouveau E1',
+            'team_away' => 'Nouveau E2',
             'date' => '2026-10-10T20:00',
-            'location' => $place->name,
             'place_id' => $place->id,
             'rendezvous' => '19h00',
-            'score' => '2-1',
+            'score_home' => 2,
+            "score_away" => 5,
             'commentaire' => 'Commentaire mis à jour',
             'numero' => 12,
         ]);
@@ -170,10 +179,12 @@ class GameEditTest extends TestCase
         $team = Team::factory()->create();
         $game = Game::factory()->create([
             'team_id' => $team->id,
-            'titre' => 'Match de préparation',
+            'team_home' => 'Equipe 1',
+            'team_away' => 'Equipe 2',
             'date' => '2026-10-20 18:00:00',
             'rendezvous' => '17h15',
-            'score' => '1-1',
+            'score_home' => '60',
+            'score_away' => '50',
             'commentaire' => 'À confirmer',
             'numero' => 7,
         ]);
@@ -181,10 +192,12 @@ class GameEditTest extends TestCase
         Livewire::test(Edit::class, ['game' => $game])
             ->call('toggleEditingGame')
             ->assertSet('editingGame', true)
-            ->assertSet('gameTitle', 'Match de préparation')
+            ->assertSet('gameTeamHome', 'Equipe 1')
+            ->assertSet('gameTeamAway', 'Equipe 2')
             ->assertSet('gameDate', '2026-10-20 18:00:00')
             ->assertSet('gameRendezvous', '17h15')
-            ->assertSet('gameScore', '1-1')
+            ->assertSet('gameScoreHome', '60')
+            ->assertSet('gameScoreAway', '50')
             ->assertSet('gameCommentaire', 'À confirmer')
             ->assertSet('gameNumero', 7);
     }

@@ -18,7 +18,8 @@ class GameFactory extends Factory
     public function definition(): array
     {
         return [
-            'titre' => fake()->numerify('Match ####'),
+            'team_home' => fake()->numerify('Equipe ##'),
+            'team_away' => fake()->numerify('Equipe ##'),
             'date' => fake()->dateTimeBetween('now','+3 month')->format('Y-m-d H:i:s'),
             'numero' => fake()->numerify('####'),
         ];

@@ -19,12 +19,13 @@ class Edit extends Component
 {
     public Game $game;
     public bool $editingGame = false;
-    public string $gameTitle = '';
+    public string $gameTeamHome = '';
+    public string $gameTeamAway = '';
     public string $gameDate = '';
-    public ?string $gameLocation = '';
     public ?int $gamePlaceId = null;
     public string $gameRendezvous = '';
-    public ?string $gameScore = '';
+    public ?string $gameScoreHome = '';
+    public ?string $gameScoreAway = '';
     public ?string $gameCommentaire = '';
     public ?int $gameNumero = null;
 
@@ -39,12 +40,13 @@ class Edit extends Component
 
     public function mount()
     {
-        $this->gameTitle = $this->game->titre===null?'':$this->game->titre;
+        $this->gameTeamHome = $this->game->team_home===null?'':$this->game->team_home;
+        $this->gameTeamAway = $this->game->team_away===null?'':$this->game->team_away;
         $this->gameDate = $this->game->date;
-        $this->gameLocation = $this->game->location;
         $this->gamePlaceId = $this->game->place_id;
         $this->gameRendezvous = $this->game->rendezvous ?? '';
-        $this->gameScore = $this->game->score ?? '';
+        $this->gameScoreHome = $this->game->score_home ?? '';
+        $this->gameScoreAway = $this->game->score_away ?? '';
         $this->gameCommentaire = $this->game->commentaire ?? '';
         $this->gameNumero = $this->game->numero ?? 0;
         
@@ -262,12 +264,13 @@ class Edit extends Component
     {
         $this->editingGame = !$this->editingGame;
         if ($this->editingGame) {
-            $this->gameTitle = $this->game->titre===null?'':$this->game->titre;
+            $this->gameTeamHome = $this->game->team_home===null?'':$this->game->team_home;
+            $this->gameTeamAway = $this->game->team_away===null?'':$this->game->team_away;
             $this->gameDate = $this->game->date;
             $this->gamePlaceId = $this->game->place_id;
-            $this->gameLocation = $this->game->location;
             $this->gameRendezvous = $this->game->rendezvous ?? '';
-            $this->gameScore = $this->game->score ?? '';
+            $this->gameScoreHome = $this->game->score_home ?? '';
+            $this->gameScoreAway = $this->game->score_away ?? '';
             $this->gameCommentaire = $this->game->commentaire ?? ''; 
             $this->gameNumero = $this->game->numero ?? 0;          
         }
@@ -279,12 +282,13 @@ class Edit extends Component
         $place = $this->gamePlaceId ? Place::find($this->gamePlaceId) : null;
 
         $this->game->update([
-            'titre' => $this->gameTitle,
+            'team_home' => $this->gameTeamHome,
+            'team_away' => $this->gameTeamAway,
             'date' => $this->gameDate,
-            'location' => $place ? $place->name : $this->gameLocation,
             'place_id' => $this->gamePlaceId,
             'rendezvous' => $this->gameRendezvous,
-            'score' => $this->gameScore,
+            'score_home' => $this->gameScoreHome,
+            'score_away' => $this->gameScoreAway,
             'commentaire' => $this->gameCommentaire,
             'numero' => $this->gameNumero
         ]);

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Team;
 
+use Livewire\Attributes\On;
 use Livewire\Component;
 use App\Models\Team;
 
@@ -15,15 +16,22 @@ class Games extends Component
     {
         $this->authorize('TeamAccess', $this->team);
 
-        $now = \Carbon\Carbon::now();
-        $this->nextGameId = null;
-        foreach ($this->team->games as $game) {
-            if ($game->date >= $now) {
-                $this->nextGameId = $game->id;
-                break;
-            }
-        }
+        $this->loadGames();
+    }
 
+    #[On('games-imported')]
+    public function refreshGames(): void
+    {
+        $this->authorize('TeamAccess', $this->team);
+        $this->loadGames();
+    }
+
+    private function loadGames(): void
+    {
+        $this->nextGameId = $this->team->games()
+            ->where('date', '>=', \Carbon\Carbon::now())
+            ->orderBy('date')
+            ->value('id');
         $this->games = $this->team->games()
             ->withCount(['members as members_count' => function ($query) {
                     $query->where('game_member.selected', 1);

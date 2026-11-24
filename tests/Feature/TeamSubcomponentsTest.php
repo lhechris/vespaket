@@ -133,26 +133,29 @@ class TeamSubcomponentsTest extends TestCase
         $team->owners()->attach($owner);
         Game::factory()->create([
             'team_id' => $team->id,
-            'titre' => 'Match passé',
+            'team_home' => 'Equipe 1',
+            'team_away' => 'Equipe 2',
             'date' => now()->subDay(),
         ]);
         $nextGame = Game::factory()->create([
             'team_id' => $team->id,
-            'titre' => 'Prochain match',
+            'team_home' => 'Equipe 3',
+            'team_away' => 'Equipe 4',
             'date' => now()->addDay(),
         ]);
         Game::factory()->create([
             'team_id' => $team->id,
-            'titre' => 'Match suivant',
+            'team_home' => 'Equipe 5',
+            'team_away' => 'Equipe 6',
             'date' => now()->addDays(2),
         ]);
 
         Livewire::actingAs($owner)
             ->test(Games::class, ['team' => $team])
             ->assertSet('nextGameId', $nextGame->id)
-            ->assertSee('Match passé')
-            ->assertSee('Prochain match')
-            ->assertSee('Match suivant');
+            ->assertSee('Equipe 1')
+            ->assertSee('Equipe 3')
+            ->assertSee('Equipe 5');
     }
 
     public function test_parameters_saves_team_details_and_creates_game_options(): void

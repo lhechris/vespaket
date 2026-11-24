@@ -2,13 +2,20 @@
 
 namespace App\Livewire\Gymnase;
 
-use Livewire\Component;
 use App\Models\Place;
+use Livewire\Component;
 
 class Show extends Component
 {
     public $places;
+
     public ?Place $editingPlace = null;
+
+    public int $placesPage = 1;
+
+    public int $placesLastPage = 1;
+
+    private const PLACES_PER_PAGE = 10;
 
     public function mount(): void
     {
@@ -17,7 +24,31 @@ class Show extends Component
 
     private function loadData(): void
     {
-        $this->places = Place::orderBy('name')->get();
+        $query = Place::query()->orderBy('city');
+
+        $this->placesLastPage = max(1, (int) ceil($query->count() / self::PLACES_PER_PAGE));
+        $this->placesPage = min($this->placesPage, $this->placesLastPage);
+        $this->places = $query
+            ->forPage($this->placesPage, self::PLACES_PER_PAGE)
+            ->get();
+    }
+
+    public function previousPlacesPage(): void
+    {
+        if ($this->placesPage > 1) {
+            $this->placesPage--;
+            $this->editingPlace = null;
+            $this->loadData();
+        }
+    }
+
+    public function nextPlacesPage(): void
+    {
+        if ($this->placesPage < $this->placesLastPage) {
+            $this->placesPage++;
+            $this->editingPlace = null;
+            $this->loadData();
+        }
     }
 
     public function create(): void

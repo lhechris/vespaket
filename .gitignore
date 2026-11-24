@@ -27,6 +27,5 @@ Homestead.yaml
 Thumbs.db
 contextai.txt
 coverage/
-testingscornco.php
-testingdesimone.php
+testing*.php
 ffbb_*.json

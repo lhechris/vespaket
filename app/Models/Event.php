@@ -21,6 +21,10 @@ class Event extends Model
     }
 
     public function formatdate() {
-        return  \Carbon\Carbon::parse($this->date)->translatedFormat('d F Y à H:i');
+        return  \Carbon\Carbon::parse($this->date)->translatedFormat('d F à H:i');
     }
+
+    public function isScheduled() {
+        return \Carbon\Carbon::parse($this->date)->greaterThanOrEqualTo(now());
+    }    
 }

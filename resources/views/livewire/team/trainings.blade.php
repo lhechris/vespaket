@@ -8,7 +8,7 @@
 
     <x-cards-scroll nextElementId="training-{{ $nextTrainingId }}" >
         @forelse($trainings as $training)
-            <x-card title="{{$training->titre}}" 
+            <x-card :title="$training->titre"
                     id="training-{{ $training->id }}" 
                     href="{{ route('training.show', [ 'training' => $training->id]) }}"
                     description="{{ $training->formatdate() }}" >

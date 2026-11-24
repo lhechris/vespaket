@@ -4,14 +4,16 @@
         <a href="{{ route('team.games.create', ['team' => $team->id ]) }}" wire:navigate>
             <x-button>➕️{{ __('actions.add') }}</x-button>
         </a>
+        <livewire:team.import-games :team="$team" />
     </div>
 
     <x-cards-scroll nextElementId="game-{{ $nextGameId }}" >
         @forelse($games as $game)
-            <x-card title="{{$game->titre}}" 
+            <x-card :title="$game->team_home . ' - ' . $game->team_away"
                     id="game-{{ $game->id }}" 
                     href="{{ route('game.edit', [ 'game' => $game->id]) }}"
-                    description="{{ $game->formatdate() }}" >
+                    description="{{ $game->formatdate() }}"
+                    :tag="$game->score()" >
                 <p>{{ __('vespaket.meet') }} : {{ $game->rendezvous }}</p>
                 <p>{{ $game->members_count }} {{ __('vespaket.players')}}</p>
             </x-card>

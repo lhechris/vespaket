@@ -14,12 +14,13 @@ return new class extends Migration
         Schema::create('games', function (Blueprint $table) {
             $table->id();
             $table->foreignId('team_id')->constrained()->cascadeOnDelete();
-            $table->string('titre');
+            $table->string('team_home')->nullable();
+            $table->string('team_away')->nullable();
             $table->dateTime('date');
             $table->integer('numero')->nullable();
-            $table->string('location')->nullable();
             $table->string("rendezvous")->nullable();
-            $table->string("score")->nullable();
+            $table->integer("score_home")->nullable();
+            $table->integer("score_away")->nullable();
             $table->string("commentaire")->nullable();
 
             $table->timestamps();

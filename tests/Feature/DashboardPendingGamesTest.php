@@ -38,14 +38,16 @@ class DashboardPendingGamesTest extends TestCase
 
         $game = Game::factory()->create([
             'team_id' => $team->id,
-            'titre' => 'Match du joueur',
+            'team_home' => 'Equipe 1',
+            'team_away' => 'Equipe 2',
             'date' => now()->addDay(),
         ]);
         $game->members()->attach($player->id, ['availability' => 'yes']);
 
         $substituteGame = Game::factory()->create([
             'team_id' => $team->id,
-            'titre' => 'Match du remplaçant',
+            'team_home' => 'Equipe 3',
+            'team_away' => 'Equipe 4',
             'date' => now()->addDays(2),
         ]);
         $substituteGame->members()->attach($substitute->id, ['availability' => 'yes']);
@@ -61,7 +63,7 @@ class DashboardPendingGamesTest extends TestCase
         $response = Livewire::actingAs($user)->test(Dashboard::class);
 
         $response
-            ->assertSeeInOrder(['Match du joueur', 'Match du remplaçant', 'Événement du remplaçant']);
+            ->assertSeeInOrder(['Equipe 1', 'Equipe 3', 'Événement du remplaçant']);
 
         $this->assertCount(3, $response->get('licensees')->first()->combined);
         $this->assertSame(1, substr_count($response->html(), 'max-h-[500px]'));
@@ -93,7 +95,8 @@ class DashboardPendingGamesTest extends TestCase
 
         $calledGame = Game::factory()->create([
             'team_id' => $team->id,
-            'titre' => 'Match convoqué',
+            'team_home' => 'Equipe 1 convoqué',
+            'team_away' => 'Equipe 2',
             'date' => now()->addDay(),
         ]);
         $calledGame->members()->attach($calledMember->id, [
@@ -103,7 +106,8 @@ class DashboardPendingGamesTest extends TestCase
 
         $unrelatedGame = Game::factory()->create([
             'team_id' => $team->id,
-            'titre' => 'Match non convoqué du joueur',
+            'team_home' => 'Equipe 3 non convoqué du joueur',
+            'team_away' => 'Equipe 4',
             'date' => now()->addDays(2),
         ]);
         $unrelatedGame->members()->attach($calledMember->id, [
@@ -113,7 +117,9 @@ class DashboardPendingGamesTest extends TestCase
 
         $notCalledGame = Game::factory()->create([
             'team_id' => $team->id,
-            'titre' => 'Match non convoqué',
+            'team_home' => 'Equipe 5 non convoqué',
+
+            'team_away' => 'Equipe 6',
             'date' => now()->addDays(2),
         ]);
         $notCalledGame->members()->attach($notCalledMember->id, [
@@ -123,14 +129,14 @@ class DashboardPendingGamesTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(Dashboard::class)
-            ->assertSee('Match convoqué')
-            ->assertDontSee('Match non convoqué')
-            ->assertDontSee('Match non convoqué du joueur')
+            ->assertSee('Equipe 1 convoqué')
+            ->assertDontSee('Equipe 5 non convoqué')
+            ->assertDontSee('Equipe 3 non convoqué du joueur')
             ->call('setTab', 'Bob')
             ->call('setTab', 'Alice')
-            ->assertSee('Match convoqué')
-            ->assertDontSee('Match non convoqué')
-            ->assertDontSee('Match non convoqué du joueur')
+            ->assertSee('Equipe 1 convoqué')
+            ->assertDontSee('Equipe 5 non convoqué')
+            ->assertDontSee('Equipe 3 non convoqué du joueur')
             ->assertSet(
                 'licensees',
                 fn ($licensees) => $licensees->first()->members->modelKeys() === [$calledMember->id]

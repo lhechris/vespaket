@@ -21,15 +21,46 @@
             >
             @error('name') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
         </div>
-
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{__('vespaket.sport_hall_address')}}</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{__('vespaket.label')}}</label>
+            <input
+                type="text"
+                wire:model="attrlab"
+                class="w-full border-gray-300 rounded-lg focus:ring-yellow-400 focus:border-yellow-400"
+                placeholder="Ex: Halle des sports"
+            >
+            @error('attrlab') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+        </div>
+        <div class="flex gap-2">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{__('vespaket.postal_code')}}</label>
+                <input
+                    type="text"
+                    wire:model="attrcp"
+                    class="w-full border-gray-300 rounded-lg focus:ring-yellow-400 focus:border-yellow-400"
+                    placeholder="Ex: 31860"
+                >
+                @error('attrcp') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{__('vespaket.city')}}</label>
+                <input
+                    type="text"
+                    wire:model="attrci"
+                    class="w-full border-gray-300 rounded-lg focus:ring-yellow-400 focus:border-yellow-400"
+                    placeholder="Ex: Labarthe sur lèze"
+                >
+                @error('attrci') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+            </div>
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{__('vespaket.address')}}</label>
             <div class="flex gap-2">
                 <input
                     type="text"
-                    wire:model="address"
+                    wire:model="attrad"
                     class="flex-1 border-gray-300 rounded-lg focus:ring-yellow-400 focus:border-yellow-400"
-                    placeholder="Ex: place fournil, Labarthe sur lèze"
+                    placeholder="Ex: place fournil"
                 >
                 <button
                     type="button"
@@ -42,7 +73,7 @@
                     <span wire:loading wire:target="geocode"> {{__('vespaket.search_in_progress')}}...</span>
                 </button>
             </div>
-            @error('address') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+            @error('attrad') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
 
             @if ($geocodeError)
                 <p class="text-red-600 text-xs mt-1">{{ $geocodeError }}</p>
@@ -59,10 +90,10 @@
                 <input
                     type="number"
                     step="any"
-                    wire:model="lat"
+                    wire:model="attrlat"
                     class="w-full border-gray-300 rounded-lg focus:ring-yellow-400 focus:border-yellow-400"
                 >
-                @error('lat') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+                @error('attrlat') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
             </div>
 
             <div>
@@ -70,10 +101,10 @@
                 <input
                     type="number"
                     step="any"
-                    wire:model="lng"
+                    wire:model="attrlng"
                     class="w-full border-gray-300 rounded-lg focus:ring-yellow-400 focus:border-yellow-400"
                 >
-                @error('lng') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+                @error('attrlng') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
             </div>
         </div>
 
@@ -81,8 +112,8 @@
             x-data="{
                 map: null,
                 marker: null,
-                lat: @entangle('lat'),
-                lng: @entangle('lng'),
+                lat: @entangle('attrlat'),
+                lng: @entangle('attrlng'),
                 initMap() {
                     this.map = L.map(this.$refs.mapContainer, {
                         scrollWheelZoom: false,
