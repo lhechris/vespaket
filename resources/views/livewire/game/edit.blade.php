@@ -174,6 +174,35 @@
                     @endforeach
                 </tbody>
             </table>
+            @if($availableMembers->isNotEmpty())
+                <div x-data="{ open: false }" class="mt-3">
+                    <x-button type="button" x-show="!open" @click="open = true" >
+                        {{ __('vespaket.add_player_or_sub') }}
+                    </x-button>
+                    <form x-cloak x-show="open" wire:submit="addPlayer" class="flex flex-col gap-2 sm:flex-row">
+                        <select wire:model="memberToAddId" class="rounded border border-gray-300 px-3 py-2 text-black">
+                            <option value="">-- Choisir un joueur ou remplaçant --</option>
+                            @foreach($availableMembers as $availableMember)
+                                <option value="{{ $availableMember->id }}">
+                                    {{ $availableMember->licensee->firstname }} {{ $availableMember->licensee->name }}
+                                    ({{ $availableMember->type === \App\Models\Member::TYPE_SUB ? __('vespaket.sub') : __('vespaket.player') }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <button type="submit"
+                            class="self-start rounded bg-green-600 px-3 py-2 font-semibold text-white hover:bg-green-700">
+                            {{  __('vespaket.add_to_match') }}
+                        </button>
+                        <button type="button" @click="open = false"
+                            class="self-start rounded bg-gray-600 px-3 py-2 font-semibold text-white hover:bg-gray-700">
+                            {{ __('actions.cancel') }}
+                        </button>
+                    </form>
+                    @error('memberToAddId')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            @endif
         </div>
         <div>
             <h2>{{ __('vespaket.list_players_selected') }}</h2>

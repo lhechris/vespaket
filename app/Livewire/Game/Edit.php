@@ -7,8 +7,10 @@ use Livewire\Component;
 use App\Models\Game;
 use App\Models\GameMemberOption;
 use App\Models\GameOption;
+use App\Models\Member;
 use App\Models\Place;
 use App\Models\User;
+use Illuminate\Validation\ValidationException;
 
 use App\Notifications\GameNotification;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -36,6 +38,7 @@ class Edit extends Component
     public $selected;
     public $places;
     public $otms;
+    public $memberToAddId = null;
 
 
     public function mount()
@@ -342,6 +345,39 @@ class Edit extends Component
          $this->loaddata();
     }
 
+    public function addPlayer(?int $memberId = null): void
+    {
+        $team = $this->game->team;
+        $this->authorize('TeamAccess', $team);
+
+        if ($memberId === null) {
+            $validated = $this->validate([
+                'memberToAddId' => ['required', 'integer'],
+            ]);
+            $memberId = (int) $validated['memberToAddId'];
+        }
+
+        $member = $team->members()
+            ->whereKey($memberId)
+            ->whereIn('type', [Member::TYPE_PLAYER, Member::TYPE_SUB])
+            ->first();
+
+        if (! $member || $this->game->members()->whereKey($member->id)->exists()) {
+            throw ValidationException::withMessages([
+                ($this->memberToAddId === null ? 'memberId' : 'memberToAddId') => 'Ce joueur ou remplaçant ne peut pas être ajouté à ce match.',
+            ]);
+        }
+
+        $this->game->members()->attach($member->id, [
+            'availability' => null,
+            'selected' => false,
+            'called' => true,
+        ]);
+        $this->memberToAddId = null;
+        $this->resetValidation();
+        $this->loaddata();
+    }
+
     public function deleteGame() {
         $team_id=$this->game->team_id;
         $this->game->delete();
@@ -388,9 +424,19 @@ class Edit extends Component
             }
         }
 
+        $availableMembers = $this->game->team->members()
+            ->whereIn('type', [Member::TYPE_PLAYER, Member::TYPE_SUB])
+            ->whereDoesntHave('games', function ($query) {
+                $query->where('games.id', $this->game->id);
+            })
+            ->with('licensee')
+            ->get()
+            ->sortBy(fn ($member) => mb_strtolower($member->licensee?->firstname ?? ''));
+
         return view('livewire.game.edit', [
             'isDomicile' => $isDomicile,
             'hasStats' => $hasStats,
+            'availableMembers' => $availableMembers,
         ])->layout('layouts.app');
     }
 }

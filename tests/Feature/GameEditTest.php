@@ -123,6 +123,73 @@ class GameEditTest extends TestCase
         ]);
     }
 
+    public function test_add_player_adds_a_team_player_or_sub_to_the_game(): void
+    {
+        $user = User::factory()->create();
+        $team = Team::factory()->create();
+        $team->owners()->attach($user->id);
+        $game = Game::factory()->create(['team_id' => $team->id]);
+        $player = Member::factory()->create([
+            'team_id' => $team->id,
+            'type' => Member::TYPE_PLAYER,
+        ]);
+        $sub = Member::factory()->create([
+            'team_id' => $team->id,
+            'type' => Member::TYPE_SUB,
+        ]);
+        $coach = Member::factory()->create([
+            'team_id' => $team->id,
+            'type' => Member::TYPE_COACH,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Edit::class, ['game' => $game])
+            ->assertSee('Ajouter un joueur')
+            ->assertSee('Choisir un joueur ou remplaçant')
+            ->call('addPlayer', $player->id)
+            ->assertHasNoErrors()
+            ->call('addPlayer', $sub->id)
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('game_member', [
+            'game_id' => $game->id,
+            'member_id' => $player->id,
+            'selected' => false,
+            'called' => true,
+        ]);
+        $this->assertDatabaseHas('game_member', [
+            'game_id' => $game->id,
+            'member_id' => $sub->id,
+        ]);
+        $this->assertDatabaseMissing('game_member', [
+            'game_id' => $game->id,
+            'member_id' => $coach->id,
+        ]);
+    }
+
+    public function test_add_player_rejects_a_member_from_another_team(): void
+    {
+        $user = User::factory()->create();
+        $team = Team::factory()->create();
+        $team->owners()->attach($user->id);
+        $game = Game::factory()->create(['team_id' => $team->id]);
+        $otherTeamPlayer = Member::factory()->create([
+            'type' => Member::TYPE_PLAYER,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Edit::class, ['game' => $game])
+            ->call('addPlayer', $otherTeamPlayer->id)
+            ->assertHasErrors('memberId');
+
+        $this->assertDatabaseMissing('game_member', [
+            'game_id' => $game->id,
+            'member_id' => $otherTeamPlayer->id,
+        ]);
+    }
+
     public function test_update_game_persists_the_form_values(): void
     {
         $team = Team::factory()->create();
