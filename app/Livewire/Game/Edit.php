@@ -105,7 +105,7 @@ class Edit extends Component
 
         $this->generateMessage();
         
-        $this->places = Place::orderby('name')->get();
+        $this->places = Place::orderby('city')->get();
 
     }
 
