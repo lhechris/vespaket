@@ -309,6 +309,44 @@ class GameEditTest extends TestCase
         ]);
     }
 
+    public function test_deselecting_a_member_removes_all_game_options(): void
+    {
+        [$team, $game, $member, $numberOption] = $this->createGameWithNumberOption();
+        $otherOption = GameOption::create([
+            'team_id' => $team->id,
+            'name' => 'Opposition',
+            'display' => GameOption::DISP_ALL,
+            'type' => GameOption::TYPE_OPPOSITION,
+            'order' => 2,
+        ]);
+
+        GameMemberOption::create([
+            'game_id' => $game->id,
+            'member_id' => $member->id,
+            'game_option_id' => $numberOption->id,
+            'value' => '10',
+        ]);
+        GameMemberOption::create([
+            'game_id' => $game->id,
+            'member_id' => $member->id,
+            'game_option_id' => $otherOption->id,
+            'value' => 'A',
+        ]);
+
+        Livewire::test(Edit::class, ['game' => $game])
+            ->call('toggleSelection', $member->id);
+
+        $this->assertDatabaseHas('game_member', [
+            'game_id' => $game->id,
+            'member_id' => $member->id,
+            'selected' => false,
+        ]);
+        $this->assertDatabaseMissing('game_member_option', [
+            'game_id' => $game->id,
+            'member_id' => $member->id,
+        ]);
+    }
+
     public function test_copy_and_open_whatsapp_dispatches_the_message(): void
     {
         $team = Team::factory()->create([

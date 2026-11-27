@@ -80,6 +80,10 @@ class Edit extends Component
         });
         if ($opts->count() > 0) {
             foreach ($this->members as $member) {
+                if (! $member->pivot->selected) {
+                    continue;
+                }
+
                 $hasGeneratedNumber = $member->gameOptions->contains(function ($gameOption) use ($opts) {
                     return $opts->contains('id', $gameOption->game_option_id)
                         && !empty($gameOption->value);
@@ -156,31 +160,33 @@ class Edit extends Component
         $activeWorksheet->setCellValue('E3', $date);
 
         $oppositionA = $this->game->members()
-                                  ->with([
-                                      'gameOptions' => function ($query) {
-                                          $query->where('game_id', $this->game->id);
-                                      },
-                                      'options' => function ($query) {
-                                          $query->where('type', GameOption::TYPE_NUM);
-                                      },
-                                  ])
-                                  ->whereHas('oppositionOptions', function ($query) {
-                    $query->where('game_id', $this->game->id)
-                        ->where('value', 'A');
-                })->get();
+                        ->with([
+                            'gameOptions' => function ($query) {
+                                $query->where('game_id', $this->game->id);
+                            },
+                            'options' => function ($query) {
+                                $query->where('type', GameOption::TYPE_NUM);
+                            },
+                        ])
+                        ->where('selected',true)
+                        ->whereHas('oppositionOptions', function ($query) {
+                            $query->where('game_id', $this->game->id)
+                            ->where('value', 'A');
+                        })->get();
 
         $oppositionB = $this->game->members()
-                                  ->with([
-                                      'gameOptions' => function ($query) {
-                                          $query->where('game_id', $this->game->id);
-                                      },
-                                      'options' => function ($query) {
-                                          $query->where('type', GameOption::TYPE_NUM);
-                                      },
-                                  ])
-                                  ->whereHas('oppositionOptions', function ($query) {
-                    $query->where('game_id', $this->game->id)
-                        ->where('value', 'B');
+                    ->with([
+                        'gameOptions' => function ($query) {
+                            $query->where('game_id', $this->game->id);
+                        },
+                        'options' => function ($query) {
+                            $query->where('type', GameOption::TYPE_NUM);
+                        },
+                    ])
+                    ->where('selected',true)
+                    ->whereHas('oppositionOptions', function ($query) {
+                        $query->where('game_id', $this->game->id)
+                              ->where('value', 'B');
                 })->get();
 
         $this->writeopposition($activeWorksheet,$oppositionB,8);
@@ -310,11 +316,18 @@ class Edit extends Component
     public function toggleSelection($memberId)
     {
         $pivot = $this->game->members()->find($memberId)->pivot;
+        $selected = ! (bool) $pivot->selected;
 
         $this->game->members()->updateExistingPivot($memberId, [
-            'selected' => !$pivot->selected
+            'selected' => $selected
         ]);
 
+        if (! $selected) {
+            GameMemberOption::query()
+                ->where('game_id', $this->game->id)
+                ->where('member_id', $memberId)
+                ->delete();
+        }
         $this->loaddata();
     }
 

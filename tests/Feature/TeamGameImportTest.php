@@ -28,10 +28,10 @@ class TeamGameImportTest extends TestCase
         ]);
         $localTeam = $championship->teams()->create([
             'team_id' => $team->id,
-            'name' => 'Équipe locale',
+            'name' => $team->name,
         ]);
         $opponent = $championship->teams()->create([
-            'name' => 'Équipe adverse',
+            'name' => 'Équipe Adverse',
         ]);
         $gameday = $championship->gamedays()->create(['number' => 1]);
 
@@ -60,8 +60,8 @@ class TeamGameImportTest extends TestCase
 
         $this->assertDatabaseHas('games', [
             'team_id' => $team->id,
-            'team_home' => 'Équipe locale',
-            'team_away' => 'Équipe adverse',
+            'team_home' => $team->name,
+            'team_away' => 'Équipe Adverse',
             'date' => '2026-11-07 00:00:00',
             'place_id' => null,
         ]);
@@ -97,7 +97,7 @@ class TeamGameImportTest extends TestCase
         ]);
         $localTeam = $championship->teams()->create([
             'team_id' => $team->id,
-            'name' => 'Équipe locale',
+            'name' => $team->name,
         ]);
         $opponent = $championship->teams()->create([
             'name' => 'Équipe adverse',
@@ -129,8 +129,8 @@ class TeamGameImportTest extends TestCase
 
         $this->assertDatabaseHas('games', [
             'team_id' => $team->id,
-            'team_home' => 'Équipe locale',
-            'team_away' => 'Équipe adverse',
+            'team_home' => $team->name,
+            'team_away' => 'Équipe Adverse',
             'date' => '2026-11-07 18:30:00',
             'place_id' => $place->id,
         ]);

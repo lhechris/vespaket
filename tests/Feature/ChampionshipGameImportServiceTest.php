@@ -21,7 +21,7 @@ class ChampionshipGameImportServiceTest extends TestCase
     public function test_it_imports_games_for_a_team_even_when_its_name_differs_from_the_championship_name(): void
     {
         [$team, $championship, $gameday, $localTeam, $opponent] = $this->createChampionship();
-        $gameday->games()->create([
+        $championshipGame = $gameday->games()->create([
             'home_team_id' => $localTeam->id,
             'away_team_id' => $opponent->id,
             'scheduled_at' => '2026-11-07 14:30:00',
@@ -37,6 +37,7 @@ class ChampionshipGameImportServiceTest extends TestCase
         $this->assertDatabaseCount('games', 1);
         $this->assertDatabaseHas('games', [
             'team_id' => $team->id,
+            'championship_game_id' => $championshipGame->id,
             'team_home' => $localTeam->name,
             'team_away' => $opponent->name,
             'date' => '2026-11-07 14:30:00',
@@ -48,13 +49,13 @@ class ChampionshipGameImportServiceTest extends TestCase
     public function test_it_does_not_duplicate_a_match_when_existing_team_names_are_slightly_different(): void
     {
         [$team, $championship, $gameday, $localTeam, $opponent] = $this->createChampionship();
-        $gameday->games()->create([
+        $championshipGame = $gameday->games()->create([
             'home_team_id' => $localTeam->id,
             'away_team_id' => $opponent->id,
             'scheduled_at' => '2026-11-07 14:30:00',
             'status' => 'scheduled',
         ]);
-        Game::factory()->create([
+        $localGame = Game::factory()->create([
             'team_id' => $team->id,
             'date' => '2026-11-07 16:00:00',
             'team_home' => 'ASLB',
@@ -63,6 +64,10 @@ class ChampionshipGameImportServiceTest extends TestCase
 
         $this->assertSame(0, app(ChampionshipGameImportService::class)->import($team, $championship));
         $this->assertDatabaseCount('games', 1);
+        $this->assertDatabaseHas('games', [
+            'id' => $localGame->id,
+            'championship_game_id' => $championshipGame->id,
+        ]);
     }
 
     public function test_it_normalizes_team_names_by_removing_accents_and_punctuation(): void
@@ -93,19 +98,30 @@ class ChampionshipGameImportServiceTest extends TestCase
 
     public function test_it_finds_a_place_from_a_json_championship_game_location(): void
     {
-        $place = Place::factory()->create([
-            'label' => 'Gymnase du Collège, et autre',
-            'cp' => '31270',
-        ]);
-        $game = new ChampionshipGames([
-            'location' => 'JSON:{"libelle":"GYMNASE DU COLLEGE","commune":{"codePostal":"31270"}}',
-        ]);
-        $findGymnase = new ReflectionMethod(ChampionshipGameImportService::class, 'findGymnase');
-        $foundPlace = $findGymnase->invoke(app(ChampionshipGameImportService::class), $game);
+        $place1 = Place::factory()->create(['label' => 'Gymnase du Collège, et autre','cp' => '31170',]);
+        $place2 = Place::factory()->create(['label' => 'Gymnase CES P Labitrie',     'cp' => '31170',]);        
 
-        $this->assertInstanceOf(Place::class, $foundPlace);
-        $this->assertSame($place->id, $foundPlace->id);
+        $findGymnase = new ReflectionMethod(ChampionshipGameImportService::class, 'findGymnase');
+
+        $game1 = new ChampionshipGames([
+            'location' => 'JSON:{"libelle":"GYMNASE DU COLLEGE","commune":{"codePostal":"31170"}}',
+        ]);
+        $foundPlace1 = $findGymnase->invoke(app(ChampionshipGameImportService::class), $game1);
+
+        $game2 = new ChampionshipGames([
+            'location' => 'JSON:{"libelle":"GYMNASE  C.E.S P.LABITRIE","commune":{"codePostal":"31170"}}',
+        ]);
+        $foundPlace2 = $findGymnase->invoke(app(ChampionshipGameImportService::class), $game2);
+
+        $this->assertInstanceOf(Place::class, $foundPlace1);
+        $this->assertSame($place1->id, $foundPlace1->id);
+
+        $this->assertInstanceOf(Place::class, $foundPlace2);
+        $this->assertSame($place2->id, $foundPlace2->id);
+
     }
+
+
 
     public function test_it_not_find_a_place_from_different_label_championship_game_location(): void
     {
@@ -159,7 +175,7 @@ class ChampionshipGameImportServiceTest extends TestCase
             'name' => 'U15F2',
         ]);
         $opponent = $championship->teams()->create([
-            'name' => 'Basket Club du Val',
+            'name' => 'Basket Club Du Val',
         ]);
 
         return [$team, $championship, $gameday, $localTeam, $opponent];

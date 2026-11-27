@@ -7,6 +7,7 @@ use App\Models\ChampionshipGamedays;
 use App\Models\ChampionshipGames;
 use App\Models\ChampionshipTeam;
 use App\Models\ChampionshipStandingSnapshots;
+use App\Models\Game;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use UnexpectedValueException;
@@ -32,14 +33,18 @@ class ChampionshipService
         $desimone = app(DesimoneService::class);
         $competition = $desimone->getCompetition($competitionId,$pouleId);
         
-        $poule = collect($competition['phases'])
+        $phases = collect($competition['phases'])
             ->flatMap(fn ($phase) => $phase['poules'])
             ->firstWhere('id', $pouleId);
-
-        $c = $this->refreshGames($championship, $pouleId, $poule['rencontres']);
-        $this->refreshStanding($championship, $desimone->getClassement($pouleId));
-
-        return $c;
+        
+        if ($phases) {
+            $c = $this->refreshGames($championship, $pouleId, $phases['rencontres']);
+            $this->refreshStanding($championship, $desimone->getClassement($pouleId));
+            return $c;
+        } else {
+            \Log::info("Le champ phases n'existe pas dans competition ".print_r($competition,true));
+        }
+        return 0;
     }
 
     public function refreshAll() {
@@ -143,10 +148,7 @@ class ChampionshipService
         return count($matches);
     }
 
-    public function refreshStanding(
-        Championship $championship,
-        array $classement,
-    ): ChampionshipStandingSnapshots
+    public function refreshStanding(Championship $championship, array $classement,): ChampionshipStandingSnapshots
     {
         $entries = [];
 
@@ -198,6 +200,51 @@ class ChampionshipService
             $snapshot->entries()->createMany($entries);
 
             return $snapshot->load('entries');
+        });
+    }
+
+    /**
+     * Met à jour les scores des matchs depuis les championnats et inversement
+     */
+    public function refreshScores(): int
+    {
+        return DB::transaction(function (): int {
+            $games = Game::query()
+                ->whereNotNull('championship_game_id')
+                ->with('championshipGame')
+                ->get();
+            $updated = 0;
+
+            foreach ($games as $game) {
+                $championshipGame = $game->championshipGame;
+                if ($championshipGame === null) {
+                    continue;
+                }
+
+                $gameHasScore = $game->score_home !== null && $game->score_away !== null;
+                $gameHasNoScore = $game->score_home === null && $game->score_away === null;
+                $championshipGameHasScore = $championshipGame->home_score !== null
+                    && $championshipGame->away_score !== null;
+                $championshipGameHasNoScore = $championshipGame->home_score === null
+                    && $championshipGame->away_score === null;
+
+                if ($gameHasScore && $championshipGameHasNoScore) {
+                    $championshipGame->update([
+                        'home_score' => $game->score_home,
+                        'away_score' => $game->score_away,
+                        'status' => 'completed',
+                    ]);
+                    $updated++;
+                } elseif ($championshipGameHasScore && $gameHasNoScore) {
+                    $game->update([
+                        'score_home' => $championshipGame->home_score,
+                        'score_away' => $championshipGame->away_score,
+                    ]);
+                    $updated++;
+                }
+            }
+
+            return $updated;
         });
     }
 }

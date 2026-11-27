@@ -25,7 +25,7 @@ class Show extends Component
 
         $championship = $this->championships()
             ->orderByDesc('season')
-            ->orderByDesc('id')
+            ->orderBy('id')
             ->first();
 
         if ($championship) {
@@ -118,7 +118,7 @@ class Show extends Component
     {
         $championships = $this->championships()
             ->orderByDesc('season')
-            ->orderByDesc('id')
+            ->orderBy('id')
             ->get();
         $championship = $this->championshipId
             ? $championships->firstWhere('id', $this->championshipId)

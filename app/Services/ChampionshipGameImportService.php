@@ -52,7 +52,22 @@ class ChampionshipGameImportService
                     throw new UnexpectedValueException('Un match du championnat ne contient pas de date.');
                 }
 
-                if ($this->alreadyExists($existingGames, $scheduledAt->toDateString(), $opponent->name)) {
+                if ($existingGames->contains(
+                    fn (Game $game): bool => (int) $game->championship_game_id === (int) $championshipGame->id
+                )) {
+                    continue;
+                }
+
+                $existingGame = $this->findExistingGame(
+                    $existingGames,
+                    $scheduledAt->toDateString(),
+                    $opponent->name,
+                    $isHome,
+                );
+                if ($existingGame !== null) {
+                    if ($existingGame->championship_game_id === null) {
+                        $existingGame->update(['championship_game_id' => $championshipGame->id]);
+                    }
                     continue;
                 }
 
@@ -69,6 +84,7 @@ class ChampionshipGameImportService
                 $game = Game::query()->create([
                     'team_id' => $team->id,
                     'place_id' => $place?->id,
+                    'championship_game_id' => $championshipGame->id,
                     'team_home' => $homeTeam,
                     'team_away' => $awayTeam,
                     'date' => $setTimeToMidnight ? $scheduledAt->copy()->startOfDay() : $scheduledAt,
@@ -137,14 +153,27 @@ class ChampionshipGameImportService
     /**
      * @param  Collection<int, Game>  $games
      */
-    private function alreadyExists(Collection $games, string $date, string $opponentName): bool
+    private function findExistingGame(
+        Collection $games,
+        string $date,
+        string $opponentName,
+        bool $isHome,
+    ): ?Game
     {
-        return $games->contains(function (Game $game) use ($date, $opponentName): bool {
+        $opponentColumn = $isHome ? 'team_away' : 'team_home';
+        $matches = $games->filter(function (Game $game) use ($date, $opponentName, $opponentColumn): bool {
             if (substr((string) $game->date, 0, 10) !== $date) {
                 return false;
             }
-            return true;
+
+            return $this->sameTeamName((string) $game->{$opponentColumn}, $opponentName);
         });
+
+        if ($matches->count() > 1) {
+            throw new UnexpectedValueException('Plusieurs matchs locaux correspondent à un match du championnat.');
+        }
+
+        return $matches->first();
     }
     
     /**
@@ -157,11 +186,15 @@ class ChampionshipGameImportService
             $j = json_decode(substr($game->location,5));
 
             $search = Str::ascii($j->libelle);
+            $search = str_replace(".","",$search);
+            $search = str_replace(' ',"",$search);
             $places = Place::where('cp', $j->commune->codePostal)
                 ->get()
                 ->filter(function ($place) use ($search) {
+                    $cmp = str_replace(".","",$place->label);
+                    $cmp = str_replace(' ',"",$cmp);
                     return str_contains(
-                        strtolower(Str::ascii($place->label)),
+                        strtolower(Str::ascii($cmp)),
                         strtolower($search)
                     );
                 });

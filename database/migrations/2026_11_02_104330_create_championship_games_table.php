@@ -30,6 +30,13 @@ return new class extends Migration
             $table->index(['matchday_id', 'scheduled_at']);
             $table->unique(['source', 'external_id']);
         });
+
+        Schema::table('games', function (Blueprint $table) {
+            $table->foreignId('championship_game_id')
+                ->nullable()
+                ->constrained('championship_games')
+                ->nullOnDelete();
+        });
     }
 
     /**

@@ -9,7 +9,7 @@ class Game extends Model
 {
     use HasFactory;
     
-    protected $fillable = ['team_id','place_id', 'date', 'rendezvous','numero','team_home','team_away','score_home','score_away','commentaire','whatsapp'];
+    protected $fillable = ['team_id','place_id', 'championship_game_id', 'date', 'rendezvous','numero','team_home','team_away','score_home','score_away','commentaire','whatsapp'];
 
     public function team()
     {
@@ -19,6 +19,11 @@ class Game extends Model
     public function place()
     {
         return $this->belongsTo(Place::class);
+    }
+
+    public function championshipGame()
+    {
+        return $this->belongsTo(ChampionshipGames::class, 'championship_game_id');
     }
 
     public function members()

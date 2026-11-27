@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['matchday_id', 'home_team_id', 'away_team_id', 'scheduled_at', 'home_score', 'away_score', 'status', 'location', 'source', 'external_id'])]
 class ChampionshipGames extends Model
@@ -31,6 +32,11 @@ class ChampionshipGames extends Model
     public function awayTeam(): BelongsTo
     {
         return $this->belongsTo(ChampionshipTeam::class, 'away_team_id');
+    }
+
+    public function games(): HasMany
+    {
+        return $this->hasMany(Game::class, 'championship_game_id');
     }
 
     public function locationStr() {

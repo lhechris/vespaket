@@ -6,6 +6,8 @@ use App\Models\Championship;
 use App\Models\ChampionshipGamedays;
 use App\Models\ChampionshipGames;
 use App\Models\ChampionshipTeam;
+use App\Models\Game;
+use App\Models\Team;
 use App\Services\ChampionshipService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -69,6 +71,102 @@ class ChampionshipServiceTest extends TestCase
         $this->assertDatabaseHas('championship_standing_entries', [
             'standing_snapshot_id' => $snapshot->id,
             'points' => 3,
+        ]);
+    }
+
+    public function test_it_refreshes_scores_between_linked_games_in_both_directions(): void
+    {
+        $team = Team::factory()->create();
+        $championship = Championship::create([
+            'name' => 'Championnat test',
+            'season' => '2026-2027',
+        ]);
+        $matchday = $championship->gamedays()->create(['number' => 1]);
+        $homeTeam = $championship->teams()->create(['name' => 'Équipe domicile']);
+        $awayTeam = $championship->teams()->create(['name' => 'Équipe extérieure']);
+
+        $gameWithLocalScore = $matchday->games()->create([
+            'home_team_id' => $homeTeam->id,
+            'away_team_id' => $awayTeam->id,
+            'scheduled_at' => '2026-11-07 14:00:00',
+        ]);
+        $gameWithChampionshipScore = $matchday->games()->create([
+            'home_team_id' => $homeTeam->id,
+            'away_team_id' => $awayTeam->id,
+            'scheduled_at' => '2026-11-14 14:00:00',
+            'home_score' => 81,
+            'away_score' => 79,
+        ]);
+        $gameWithExistingLocalScore = $matchday->games()->create([
+            'home_team_id' => $homeTeam->id,
+            'away_team_id' => $awayTeam->id,
+            'scheduled_at' => '2026-11-21 14:00:00',
+            'home_score' => 35,
+            'away_score' => 30,
+        ]);
+        $gameWithPartialChampionshipScore = $matchday->games()->create([
+            'home_team_id' => $homeTeam->id,
+            'away_team_id' => $awayTeam->id,
+            'scheduled_at' => '2026-11-28 14:00:00',
+            'home_score' => 20,
+        ]);
+
+        Game::create([
+            'team_id' => $team->id,
+            'championship_game_id' => $gameWithLocalScore->id,
+            'team_home' => 'Équipe domicile',
+            'team_away' => 'Équipe extérieure',
+            'date' => '2026-11-07 14:00:00',
+            'score_home' => 62,
+            'score_away' => 54,
+        ]);
+        Game::create([
+            'team_id' => $team->id,
+            'championship_game_id' => $gameWithChampionshipScore->id,
+            'team_home' => 'Équipe domicile',
+            'team_away' => 'Équipe extérieure',
+            'date' => '2026-11-14 14:00:00',
+        ]);
+        $partialLocalGame = Game::create([
+            'team_id' => $team->id,
+            'championship_game_id' => $gameWithExistingLocalScore->id,
+            'team_home' => 'Équipe domicile',
+            'team_away' => 'Équipe extérieure',
+            'date' => '2026-11-21 14:00:00',
+            'score_home' => 10,
+        ]);
+        Game::create([
+            'team_id' => $team->id,
+            'championship_game_id' => $gameWithPartialChampionshipScore->id,
+            'team_home' => 'Équipe domicile',
+            'team_away' => 'Équipe extérieure',
+            'date' => '2026-11-28 14:00:00',
+            'score_home' => 41,
+            'score_away' => 39,
+        ]);
+
+        $this->assertSame(2, app(ChampionshipService::class)->refreshScores());
+
+        $this->assertDatabaseHas('championship_games', [
+            'id' => $gameWithLocalScore->id,
+            'home_score' => 62,
+            'away_score' => 54,
+            'status' => 'completed',
+        ]);
+        $this->assertDatabaseHas('games', [
+            'championship_game_id' => $gameWithChampionshipScore->id,
+            'score_home' => 81,
+            'score_away' => 79,
+        ]);
+        $this->assertDatabaseHas('games', [
+            'id' => $partialLocalGame->id,
+            'score_home' => 10,
+            'score_away' => null,
+        ]);
+        $this->assertDatabaseHas('championship_games', [
+            'id' => $gameWithPartialChampionshipScore->id,
+            'home_score' => 20,
+            'away_score' => null,
         ]);
     }
 
